@@ -1,0 +1,10 @@
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\bin\Release\netstandard2.0\NativeBuffering.Generator.deps.json
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\bin\Release\netstandard2.0\NativeBuffering.Generator.dll
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\bin\Release\netstandard2.0\NativeBuffering.Generator.pdb
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.csproj.AssemblyReference.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.AssemblyInfoInputs.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.AssemblyInfo.cs
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.csproj.CoreCompileInputs.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.dll
+D:\Work\Projects\native-buffering\src\NativeBuffering.Generator\obj\Release\netstandard2.0\NativeBuffering.Generator.pdb

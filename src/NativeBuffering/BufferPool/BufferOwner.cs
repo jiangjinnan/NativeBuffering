@@ -24,11 +24,12 @@
             }
         }
 
+
         public void Dispose()
         {
             if (Interlocked.CompareExchange(ref _isReleased, 1, 0) == 0)
             {
-                _bucket?.Add(Bytes);
+                _bucket?.Add(_bytes);
             }
         }
     }

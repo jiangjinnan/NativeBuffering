@@ -1,21 +1,20 @@
-﻿namespace NativeBuffering
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
+
+namespace NativeBuffering
 {
     internal sealed class InternalBufferPool
     {
         private readonly Bucket[] buckets;
         private readonly int _maxRequestedLength;
-        private readonly int _bucketCount;
-        private readonly int _step;
-        public static InternalBufferPool Create(int maxLength, int bucketCount)=> new(maxLength, bucketCount);
+        public static InternalBufferPool Create(int maxLength) => new(maxLength);
 
-        public InternalBufferPool(int maxLength, int bucketCount)
+        public InternalBufferPool(int maxLength)
         {
-            _maxRequestedLength = maxLength;
-            _bucketCount = bucketCount;
-            _step = maxLength / (_bucketCount - 1);
-
-            buckets = new Bucket[_bucketCount];
-            for (int index = 0; index < _bucketCount; index++)
+            var bucketCount = SelectBucketIndex(maxLength) + 1;
+            buckets = new Bucket[bucketCount];
+            _maxRequestedLength = GetMaxSizeForBucket(bucketCount - 1);
+            for (int index = 0; index < bucketCount; index++)
             {
                 buckets[index] = new Bucket();
             }
@@ -29,10 +28,11 @@
             }
             if (minimumLength > _maxRequestedLength)
             {
-                return new BufferOwner( GC.AllocateUninitializedArray<byte>(minimumLength, pinned: true), null);
+                return new BufferOwner(GC.AllocateUninitializedArray<byte>(minimumLength, pinned: false), null);
             }
 
-            for (int index = IndexOf(minimumLength); index < _bucketCount; index++)
+            var bucketIndex = SelectBucketIndex(minimumLength);
+            for (int index = bucketIndex; index < buckets.Length; index++)
             {
                 var bucket = buckets[index];
                 if (bucket.TryTake(out var array))
@@ -41,9 +41,13 @@
                 }
             }
 
-            return new BufferOwner( GC.AllocateUninitializedArray<byte>(minimumLength + _step, pinned: true), null);
+            return new BufferOwner(GC.AllocateUninitializedArray<byte>(GetMaxSizeForBucket(bucketIndex), pinned: true), buckets[bucketIndex]);
         }
 
-        private int IndexOf(int length) => length / _step;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int GetMaxSizeForBucket(int binIndex)=> 16 << binIndex;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int SelectBucketIndex(int bufferSize)=> BitOperations.Log2((uint)(bufferSize - 1) | 0xFu) - 3;
     }
 }

@@ -1,7 +1,10 @@
 ﻿using App;
 using BenchmarkDotNet.Running;
 
-var summary = BenchmarkRunner.Run(typeof(int));
+//var b = new MyBenchmark();
+//b.Setup();
+//b.UseEntityBufferedMessage();
+var summary = BenchmarkRunner.Run(typeof(MyBenchmark));
 
 //using App;
 //using NativeBuffering;

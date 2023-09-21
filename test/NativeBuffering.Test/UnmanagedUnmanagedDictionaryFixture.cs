@@ -1,29 +1,52 @@
 ﻿using NativeBuffering.Dictionaries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NativeBuffering.Test
 {
-    public class UnmanagedUnmanagedDictionaryFixture
+    public partial class UnmanagedUnmanagedDictionaryFixture
     {
         [Fact]
         public void GetValues()
         { 
-            var source = new Source(new Dictionary<long, long> { { 1, 1 }, { 2, 2 }, { 3, 3 } });
-            var buffer = new byte[source.CalculateSize()];
-            var context = new BufferedObjectWriteContext(buffer);
-            source.Write(context);
-            var message = Message.Parse(new NativeBuffer(buffer, 0));
-            Assert.Equal(3, message.Value.Count);
-            Assert.Equal(1, message.Value[1]);
-            Assert.Equal(2, message.Value[2]);
-            Assert.Equal(3, message.Value[3]);
+            var random = new Random();
+            var numbers = Enumerable.Range(0, random.Next(10,30)).Select(_=>random.Next(10,5000)).Distinct().ToArray();
+
+            var source = new Source(numbers.ToDictionary(it=>(long)it, it=>(long)it));
+            using var pooledMessage = source.AsBufferedMessage<SourceBufferedMessage>();
+            var message = pooledMessage.BufferedMessage;
+
+            Assert.Equal(numbers.Length, message.Value.Count);
+            foreach(var number in numbers)
+            {
+                Assert.Equal(number, message.Value[number]);
+            }
+
+            var keys = message.Value.Keys;
+            Assert.Equal(numbers.Length, keys.Count());
+            foreach (var number in numbers)
+            {
+                Assert.Contains(number, keys);
+            }
+
+            var values = message.Value.Values;
+            Assert.Equal(numbers.Length, keys.Count());
+            foreach (var number in numbers)
+            {
+                Assert.Contains(number, values);
+            }
+
+            var keySet = new HashSet<long>( message.Value.Keys);
+            var valueSet = new HashSet<long>( message.Value.Values);
+            foreach (var kv in message.Value)
+            {
+                keySet.Remove(kv.Key);
+                valueSet.Remove(kv.Value);
+            }
+            Assert.Empty(keySet);
+            Assert.Empty(valueSet);
         }
 
-        public class Source : IBufferedObjectSource
+        [BufferedMessageSource]
+        public partial class Source 
         {
             public Source(Dictionary<long, long> value)
             {
@@ -31,21 +54,6 @@ namespace NativeBuffering.Test
             }
 
             public Dictionary<long, long> Value { get; }
-            public int CalculateSize() => Utilities.CalculateDictionaryFieldSize(Value);
-
-            public void Write(BufferedObjectWriteContext context)
-            {
-                using var scope = new BufferedObjectWriteContextScope(context);
-                scope.WriteUnmanagedUnmanagedDictionaryField(Value);
-            }
-        }
-
-        public class Message: IReadOnlyBufferedObject<Message>
-        {
-            public Message(NativeBuffer buffer) => Buffer = buffer;
-            public NativeBuffer Buffer { get; }
-            public ReadOnlyUnmanagedUnmanagedDictionary<long, long> Value => Buffer.ReadUnmanagedUnmanagedDictionaryField<long, long>(0);
-            public static Message Parse(NativeBuffer buffer) => new Message(buffer);
         }
     }
 }

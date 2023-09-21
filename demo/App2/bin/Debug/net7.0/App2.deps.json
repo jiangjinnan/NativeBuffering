@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "App2/1.0.0": {
+        "dependencies": {
+          "NativeBuffering": "1.0.0"
+        },
+        "runtime": {
+          "App2.dll": {}
+        }
+      },
+      "NativeBuffering/1.0.0": {
+        "runtime": {
+          "NativeBuffering.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "App2/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NativeBuffering/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

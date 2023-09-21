@@ -4,9 +4,12 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<LangVersion>latest</LangVersion>
+	<LangVersion>preview</LangVersion>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<AssemblyVersion>0.1.2</AssemblyVersion>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Version>0.1.2</Version>
   </PropertyGroup>
 
 </Project>

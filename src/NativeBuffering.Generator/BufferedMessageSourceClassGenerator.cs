@@ -16,49 +16,12 @@ namespace NativeBuffering.Generator
 
         private void GenerateCalculateSizeMethod(BufferedObjectMetadata metadata, CodeGenerationContext context)
         {
-            var properties = metadata.Properties;
             context.WriteLines("public int CalculateSize()");
             using (context.CodeBlock())
             {
-                context.WriteLines(" var size = 0;");
-                for (int index = 0; index < properties.Length; index++)
-                {
-                    var property = properties[index];
-                    var propertyName = property.PropertySymbol.Name;
-                    var propertyType = property.PropertySymbol.Type;
-                    if (propertyType.IsUnmanagedType)
-                    {
-                        context.WriteLines($"size += NativeBuffering.Utilities.CalculateUnmanagedFieldSize({propertyName});");
-                        continue;
-                    }
-
-                    if (propertyType.IsString())
-                    {
-                        context.WriteLines($"size += NativeBuffering.Utilities.CalculateStringFieldSize({propertyName});");
-                        continue;
-                    }
-
-                    if (propertyType.IsBinary())
-                    {
-                        context.WriteLines($"size += NativeBuffering.Utilities.CalculateBinaryFieldSize({propertyName});");
-                        continue;
-                    }
-
-                    if (propertyType.IsBufferedMessageSource(out _))
-                    {                        
-                         context.WriteLines($"size += NativeBuffering.Utilities.CalculateBufferedObjectFieldSize({propertyName});");
-                        continue;
-                    }
-
-                    if (propertyType.IsDictionary(out _, out _))
-                    {
-                        context.WriteLines($"size += NativeBuffering.Utilities.CalculateDictionaryFieldSize({propertyName});");
-                        continue;
-                    }
-
-                    context.WriteLines($"size += NativeBuffering.Utilities.CalculateCollectionFieldSize({propertyName});");
-                }
-                context.WriteLines("return size;");
+                context.WriteLines("var context = BufferedObjectWriteContext.CreateForSizeCalculation();");
+                context.WriteLines("Write(context);");
+                context.WriteLines("return context.Position;");
             }
         }
 
@@ -100,7 +63,7 @@ namespace NativeBuffering.Generator
 
                         _ => throw new NotSupportedException("Will never hit here!")
                     };
-                }
+                }               
             }
         }
     }

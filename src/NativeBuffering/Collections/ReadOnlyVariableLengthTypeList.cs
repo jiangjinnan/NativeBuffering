@@ -7,6 +7,8 @@ namespace NativeBuffering.Collections
         where T : IReadOnlyBufferedObject<T>
     {
         public NativeBuffer Buffer { get; }
+
+        public readonly static ReadOnlyVariableLengthTypeList<T> Empty = new (new NativeBuffer(new byte[4]));
         public T this[int index]
         {
             get
@@ -19,12 +21,11 @@ namespace NativeBuffering.Collections
 
         public int Count => Unsafe.Read<int>(Buffer.Start);
         public ReadOnlyVariableLengthTypeList(NativeBuffer buffer) => Buffer = buffer;
-        public IEnumerator<T> GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new Enumerator(this);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
         public static ReadOnlyVariableLengthTypeList<T> Parse(NativeBuffer buffer)=> new(buffer);
-
-        private struct Enumerator : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>
         {
             private readonly NativeBuffer _buffer;
             private readonly int _count;

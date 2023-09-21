@@ -8,4 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = App2
-build_property.ProjectDir = D:\Work\Projects\NativeBuffering\demo\App2\
+build_property.ProjectDir = D:\Projects\repos\NativeBuffering\demo\App2\

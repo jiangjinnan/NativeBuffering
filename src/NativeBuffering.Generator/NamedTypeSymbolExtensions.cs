@@ -142,7 +142,7 @@ namespace NativeBuffering.Generator
             }
 
             var enumerableType = typeSymbol.AllInterfaces.SingleOrDefault(it => it.MetadataName == "IEnumerable`1" && it.ContainingNamespace.ToString() == "System.Collections.Generic");
-            if (enumerableType is not null && enumerableType.TypeArguments.Single() is INamedTypeSymbol element2)
+            if (enumerableType is not null && enumerableType.TypeArguments.Single() is ITypeSymbol element2)
             {
                 elementTypeSymbol = element2;
                 return true;
@@ -157,9 +157,7 @@ namespace NativeBuffering.Generator
             {
                 elementTypeSymbol = element1;
                 return true;
-            }
-
-           
+            }           
 
             elementTypeSymbol = null;
             return false;

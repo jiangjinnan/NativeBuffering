@@ -37,7 +37,7 @@ namespace NativeBuffering.Generator
 
                 generationContext = new CodeGenerationContext();
                 Generate(typeSymbol, generationContext, (_, ctx) => new BufferedMessageClassGenerator().Generate(metadata, ctx));
-                context.AddSource($"{metadata.BufferedMessageClassName}.g.cs", SourceText.From(generationContext.SourceCode!, Encoding.UTF8));
+                context.AddSource($"{metadata.BufferedMessageClassFullName}.g.cs", SourceText.From(generationContext.SourceCode!, Encoding.UTF8));
             }
         }
 

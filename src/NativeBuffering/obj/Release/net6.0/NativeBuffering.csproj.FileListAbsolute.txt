@@ -1,0 +1,4 @@
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net6.0\NativeBuffering.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net6.0\NativeBuffering.AssemblyInfoInputs.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net6.0\NativeBuffering.AssemblyInfo.cs
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net6.0\NativeBuffering.csproj.CoreCompileInputs.cache

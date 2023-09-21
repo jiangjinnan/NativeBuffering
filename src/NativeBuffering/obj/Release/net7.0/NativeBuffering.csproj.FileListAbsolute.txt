@@ -1,0 +1,11 @@
+D:\Work\Projects\native-buffering\src\NativeBuffering\bin\Release\net7.0\NativeBuffering.deps.json
+D:\Work\Projects\native-buffering\src\NativeBuffering\bin\Release\net7.0\NativeBuffering.dll
+D:\Work\Projects\native-buffering\src\NativeBuffering\bin\Release\net7.0\NativeBuffering.pdb
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.GeneratedMSBuildEditorConfig.editorconfig
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.AssemblyInfoInputs.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.AssemblyInfo.cs
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.csproj.CoreCompileInputs.cache
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.dll
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\refint\NativeBuffering.dll
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\NativeBuffering.pdb
+D:\Work\Projects\native-buffering\src\NativeBuffering\obj\Release\net7.0\ref\NativeBuffering.dll

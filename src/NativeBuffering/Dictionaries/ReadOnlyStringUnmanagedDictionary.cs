@@ -1,118 +1,152 @@
 ﻿using NativeBuffering.Collections;
+using NativeBuffering.NewDictionaries;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace NativeBuffering.Dictionaries
 {
     public unsafe readonly struct ReadOnlyStringUnmanagedDictionary<TValue> : IReadOnlyDictionary<string, TValue>, IReadOnlyBufferedObject<ReadOnlyStringUnmanagedDictionary<TValue>>
-        where TValue : unmanaged
+         where TValue : unmanaged
     {
-        private readonly ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>> _list;
-        public ReadOnlyStringUnmanagedDictionary(NativeBuffer buffer) =>_list = new(buffer);
+        public ReadOnlyStringUnmanagedDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[string key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
 
         public ref TValue AsRef(string key)
         {
-            if (!BinarySearch(0, Count, key, out var kv))
+            var kvs = GetDictionaryEntry(key.GetDictionaryEntryIndex(EntrySlotCount));
+            if (ReadOnlyStringUnmanagedDictionary<TValue>.TryGetKV(kvs, key, out var kv))
             {
-                throw new KeyNotFoundException();
+                return ref kv.Value;
             }
-            return ref kv.Value;
+            throw new KeyNotFoundException();
         }
-
+        public NativeBuffer Buffer { get; }
         public IEnumerable<string> Keys
         {
             get
-            {
-                var keys = new string[Count];
-                for (int index = 0; index < Count; index++)
+            { 
+                if(Count == 0)
                 {
-                    var kv = _list[index];
-                    keys[index] = kv.Key;
+                    return Enumerable.Empty<string>();
+                }   
+                var keys = new List<string>(Count);
+                for (int index = 0; index < EntrySlotCount; index++)
+                {
+                    var kv = GetDictionaryEntry(index);
+                    keys.AddRange(kv.Select(it=>it.Key));
                 }
                 return keys;
             }
         }
-
-        public IEnumerable<TValue> Values 
-         {
+        public IEnumerable<TValue> Values
+        {
             get
-            {
-                var values = new TValue[Count];
-                for (int index = 0; index < Count; index++)
+            { 
+                if(Count == 0)
                 {
-                    var kv = _list[index];
-                    values[index] = kv.Value;
+                    return Enumerable.Empty<TValue>();
+                }
+                var values = new List<TValue>(Count);
+                for (int index = 0; index < EntrySlotCount; index++)
+                {
+                    var kv = GetDictionaryEntry(index);
+                    values.AddRange(kv.Select(it=>it.Value));
                 }
                 return values;
             }
         }
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => DictionaryUtilities.GetCount(Buffer);
+        }
+        public int EntrySlotCount
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => DictionaryUtilities.GetEntrySlotCount(Buffer);
+        }
+        public static ReadOnlyStringUnmanagedDictionary<TValue> Parse(NativeBuffer buffer) => new(buffer);
+        public bool ContainsKey(string key) => TryGetValue(key, out _);
+       
 
-        public int Count => _list.Count;
-        public bool ContainsKey(string key)=>ContainsKey(0, Count, key);
-        public IEnumerator<KeyValuePair<string, TValue>> GetEnumerator()=> new Enumerator(this);
         public bool TryGetValue(string key, [MaybeNullWhen(false)] out TValue value)
-        { 
-            if(BinarySearch(0, Count, key, out var kv))
+        {
+            var kvs = GetDictionaryEntry(key.GetDictionaryEntryIndex(EntrySlotCount));
+            if (ReadOnlyStringUnmanagedDictionary<TValue>.TryGetKV(kvs, key, out var kv))
             {
                 value = kv.Value;
                 return true;
             }
-            value = default!;
+            value = default;
             return false;
         }
-        IEnumerator IEnumerable.GetEnumerator()=> GetEnumerator();
-
-        public static ReadOnlyStringUnmanagedDictionary<TValue> Parse(NativeBuffer buffer) => new(buffer);
-
-        private bool BinarySearch(int low, int high, string key, out StringUnmanagedPair<TValue> kv)
+        public Enumerator GetEnumerator() => new(this);
+        IEnumerator<KeyValuePair<string, TValue>> IEnumerable<KeyValuePair<string, TValue>>.GetEnumerator() => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        private ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>> GetDictionaryEntry(int index)
         {
-            int index = (low + high) / 2;
-            if (low > high)
-            {
-                kv = default!;
-                return false;
-            }
-
-            kv = _list[index];
-            var result = kv.Key.CompareTo(key);
-            if (result == 0)
-            {
-                return true;
-            }
-
-            return result > 0 ? BinarySearch(low, index - 1, key, out kv) : BinarySearch(index + 1, high, key, out kv);
+            var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
+            return position == -1 ? ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Empty : ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Parse(Buffer.CreateByIndex(position));
         }
 
-        private bool ContainsKey(int low, int high, string key)
+        private static bool TryGetKV(ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>> entry, string key, [MaybeNullWhen(false)] out StringUnmanagedPair<TValue> kv)
         {
-            int index = (low + high) / 2;
-            if (low > high)
+            for (var index = 0; index < entry.Count; index++)
             {
-                return false;
+                var item = entry[index];
+                if (item.Key.Equals(key))
+                {
+                    kv = item;
+                    return true;
+                }
             }
 
-            var kv = _list[index];
-            var result = kv.Key.CompareTo(key);
-            if (result == 0)
-            {
-                return true;
-            }
-
-            return result > 0 ? ContainsKey(low, index - 1, key) : ContainsKey(index + 1, high, key);
+            kv = default;
+            return false;
         }
 
-        
-
-        private readonly struct Enumerator : IEnumerator<KeyValuePair<string, TValue>>
+        public struct Enumerator : IEnumerator<KeyValuePair<string, TValue>>
         {
-            private readonly IEnumerator<StringUnmanagedPair<TValue>> _enumerator;
-            public Enumerator(ReadOnlyStringUnmanagedDictionary< TValue> dictionary)=>_enumerator = dictionary._list.GetEnumerator();
-            public KeyValuePair<string, TValue> Current => _enumerator.Current.AsKeyValuePair(); 
-            object IEnumerator.Current => Current;
+            private readonly ReadOnlyStringUnmanagedDictionary<TValue> _dictionary;
+            private KeyValuePair<string, TValue> _current;
+            private int _entryIndex = 0;
+            private ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Enumerator _entryEnerator;
+
+            public Enumerator(ReadOnlyStringUnmanagedDictionary<TValue> dictionary)
+            {
+                _dictionary = dictionary;
+                Reset();
+            }
+
+            public readonly KeyValuePair<string, TValue> Current => _current;
+
+            readonly object IEnumerator.Current => Current;
+
             public readonly void Dispose() { }
-            public readonly bool MoveNext() => _enumerator.MoveNext();
-            public readonly void Reset() => _enumerator.Reset();
+
+            public bool MoveNext()
+            {
+                while (true)
+                {
+                    if (_entryEnerator.MoveNext())
+                    {
+                        _current = new KeyValuePair<string, TValue>(_entryEnerator.Current.Key, _entryEnerator.Current.Value);
+                        return true;
+                    }
+                    if (++_entryIndex >= _dictionary.EntrySlotCount)
+                    {
+                        return false;
+                    }
+                    _entryEnerator = _dictionary.GetDictionaryEntry(_entryIndex).GetEnumerator();
+                }
+            }
+
+            public void Reset()
+            {
+                _entryIndex = 0;
+                _entryEnerator = _dictionary.GetDictionaryEntry(_entryIndex).GetEnumerator();
+            }
         }
     }
 }

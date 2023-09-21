@@ -4,32 +4,34 @@ using System.Runtime.CompilerServices;
 namespace NativeBuffering.Collections
 {
     public readonly unsafe struct ReadOnlyFixedLengthTypedList<T> : IReadOnlyList<T>, IReadOnlyBufferedObject<ReadOnlyFixedLengthTypedList<T>>
-        where T: unmanaged
-    {        
+        where T : unmanaged
+    {
+        private static readonly int _elementSize = Unsafe.SizeOf<T>() % AlignmentCalculator.AlignmentOf<T>() == 0 ? Unsafe.SizeOf<T>() : Unsafe.SizeOf<T>() + AlignmentCalculator.AlignmentOf<T>() - Unsafe.SizeOf<T>() % AlignmentCalculator.AlignmentOf<T>();
         public NativeBuffer Buffer { get; }
+        public readonly static ReadOnlyFixedLengthTypedList<T> Empty = new(new NativeBuffer(new byte[4]));
         public readonly int Count => Unsafe.Read<int>(Buffer.Start);
         public T this[int index]
         {
             get
             {
                 if (index < 0 || index >= Count) throw new IndexOutOfRangeException(nameof(index));
-                return Unsafe.Read<T>(Buffer.GetPointerByOffset(sizeof(int) +  index  * Unsafe.SizeOf<T>()));
+                return Unsafe.Read<T>(Buffer.GetPointerByOffset(IntPtr.Size + index * _elementSize));
             }
         }
 
         public readonly ref T AsRef(int index)
         {
             if (index < 0 || index >= Count) throw new IndexOutOfRangeException(nameof(index));
-            return ref Unsafe.AsRef<T>(Buffer.GetPointerByOffset(sizeof(int) +  index  * Unsafe.SizeOf<T>()));
+            return ref Unsafe.AsRef<T>(Buffer.GetPointerByOffset(IntPtr.Size + index * _elementSize));
         }
 
         public ReadOnlyFixedLengthTypedList(NativeBuffer buffer) => Buffer = buffer;
-        public IEnumerator<T> GetEnumerator()=> new Enumerator(this);
-        IEnumerator IEnumerable.GetEnumerator()=> GetEnumerator();
+        public Enumerator GetEnumerator()=> new Enumerator(this);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public static ReadOnlyFixedLengthTypedList<T> Parse(NativeBuffer buffer) => new(buffer);
 
-        public static ReadOnlyFixedLengthTypedList<T> Parse(NativeBuffer buffer)=> new(buffer);
-
-        private struct Enumerator : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>
         {
             private readonly void* _start;
             private readonly int _count;
@@ -41,7 +43,7 @@ namespace NativeBuffering.Collections
                 _count = list.Count;
             }
 
-            public readonly T Current => Unsafe.Read<T>(Unsafe.Add<byte>(_start, sizeof(int) + Unsafe.SizeOf<T>() * _index));
+            public readonly T Current => Unsafe.Read<T>(Unsafe.Add<byte>(_start, IntPtr.Size + _elementSize * _index));
             readonly object IEnumerator.Current => Current;
             public readonly void Dispose() { }
             public bool MoveNext() => ++_index < _count;

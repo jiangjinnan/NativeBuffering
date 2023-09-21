@@ -1,33 +1,40 @@
-﻿using System.Collections;
+﻿using NativeBuffering.Collections;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace NativeBuffering.Dictionaries
 {
     public unsafe readonly struct ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IReadOnlyBufferedObject<ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue>>
-        where TKey : unmanaged, IComparable<TKey>
-        where TValue : unmanaged
+         where TKey : unmanaged, IEquatable<TKey>
+         where TValue : unmanaged
     {
-        public ReadOnlyUnmanagedUnmanagedDictionary(NativeBuffer buffer)=> Buffer = buffer;
-        public NativeBuffer Buffer { get; }
+        public ReadOnlyUnmanagedUnmanagedDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[TKey key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
-        public readonly ref TValue AsRef(TKey index) 
-        { 
-            if(BinarySearch(0, Count, index, out var kv))
+        public ref TValue AsRef(TKey key)
+        {
+            var kvs = GetDictionaryEntry(key.GetDictionaryEntryIndex(EntrySlotCount));
+            if (kvs.TryGetKV(key, out var kv))
             {
                 return ref kv.Value;
             }
             throw new KeyNotFoundException();
         }
+        public NativeBuffer Buffer { get; }
+
         public IEnumerable<TKey> Keys
         {
             get
             {
-                var keys = new TKey[Count];
-                for (int index = 0; index < Count; index++)
+                if (Count == 0)
                 {
-                    var kv =  Get(index);
-                    keys[index] = kv.Key;
+                    return Enumerable.Empty<TKey>();
+                }
+                var keys = new List<TKey>(Count);
+                for (int index = 0; index < EntrySlotCount; index++)
+                {
+                    var kv = GetDictionaryEntry(index);
+                    keys.AddRange(kv.Select(it => it.Key));
                 }
                 return keys;
             }
@@ -36,91 +43,89 @@ namespace NativeBuffering.Dictionaries
         {
             get
             {
-                var values = new TValue[Count];
-                for (int index = 0; index < Count; index++)
+                if (Count == 0)
                 {
-                    var kv = Get(index);
-                    values[index] = kv.Value;
+                    return Enumerable.Empty<TValue>();
+                }
+                var values = new List<TValue>(Count);
+                for (int index = 0; index < EntrySlotCount; index++)
+                {
+                    var kv = GetDictionaryEntry(index);
+                    values.AddRange(kv.Select(it => it.Value));
                 }
                 return values;
             }
         }
-        public int Count => Unsafe.Read<int>(Buffer.Start);
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => DictionaryUtilities.GetCount(Buffer);
+        }
+        public int EntrySlotCount
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => DictionaryUtilities.GetEntrySlotCount(Buffer);
+        }
         public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> Parse(NativeBuffer buffer) => new(buffer);
-        public bool ContainsKey(TKey key)=>ContainsKey(0, Count, key);
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()=> new Enumerator(this);
+        public bool ContainsKey(TKey key) => TryGetValue(key, out _);
+
+        public Enumerator GetEnumerator() => new(this);
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => GetEnumerator();
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            if (BinarySearch(0, Count, key, out var kv))
-            { 
+            var kvs = GetDictionaryEntry(key.GetDictionaryEntryIndex(EntrySlotCount));
+            if (kvs.TryGetKV(key, out var kv))
+            {
                 value = kv.Value;
                 return true;
             }
-            value = default!;
+            value = default;
             return false;
         }
-
-        IEnumerator IEnumerable.GetEnumerator()=> GetEnumerator();
-        private bool BinarySearch(int low, int high, TKey key, out UnmanagedUnmanagedPair<TKey, TValue> kv)
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        private BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue> GetDictionaryEntry(int index)
         {
-            int index = (low + high) / 2;
-            if (low > high)
-            {
-                kv = default!;
-                return false;
-            }
-
-            kv = Get(index);
-            var result = kv.Key.CompareTo(key);
-            if (result == 0)
-            {
-                return true;
-            }
-
-            return result > 0 ? BinarySearch(low, index - 1, key, out kv) : BinarySearch(index + 1, high, key, out kv);
+            var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
+            return position == -1 ? BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Empty : BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Parse(Buffer.CreateByIndex(position));
         }
 
-        private bool ContainsKey(int low, int high, TKey key)
-        {
-            int index = (low + high) / 2;
-            if (low > high)
-            {
-                return false;
-            }
-
-            var kv = Get(index);
-            var result = kv.Key.CompareTo(key);
-            if (result == 0)
-            {
-                return true;
-            }
-
-            return result > 0 ? ContainsKey(low, index - 1, key) : ContainsKey(index + 1, high, key);
-        }
-
-        private UnmanagedUnmanagedPair<TKey, TValue> Get(int index)
-        { 
-            var buffer = Buffer.CreateByOffset(sizeof(int) + index * UnmanagedUnmanagedPair<TKey, TValue>.CalculateSize());
-            return UnmanagedUnmanagedPair<TKey, TValue>.Parse(buffer);
-        }
-
-        private struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
+        public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>
         {
             private readonly ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> _dictionary;
-            private int _index;
+            private KeyValuePair<TKey, TValue> _current;
+            private int _entryIndex = 0;
+            private BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Enumerator _entryEnerator;
             public Enumerator(ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> dictionary)
             {
                 _dictionary = dictionary;
-                _index = -1;
+                Reset();
+            }
+            public readonly KeyValuePair<TKey, TValue> Current => _current;
+            readonly object IEnumerator.Current => Current;
+            public readonly void Dispose() { }
+            public bool MoveNext()
+            {
+                while (true)
+                {
+                    if (_entryEnerator.MoveNext())
+                    {
+                        _current = new KeyValuePair<TKey, TValue>(_entryEnerator.Current.Key, _entryEnerator.Current.Value);
+                        return true;
+                    }
+                    if (++_entryIndex >= _dictionary.EntrySlotCount)
+                    {
+                        return false;
+                    }
+                    _entryEnerator = _dictionary.GetDictionaryEntry(_entryIndex).GetEnumerator();
+                }
             }
 
-            public bool MoveNext()=> ++_index < _dictionary.Count;
-            public void Reset()=> _index = -1;
-            public readonly KeyValuePair<TKey, TValue> Current => _dictionary.Get(_index).AsKeyValuePair();
-            readonly object IEnumerator.Current => Current;
-            public readonly void Dispose()
+            public void Reset()
             {
+                _entryIndex = 0;
+                _entryEnerator = _dictionary.GetDictionaryEntry(_entryIndex).GetEnumerator();
             }
-        }   
+        }
     }
+    internal readonly record struct UnmanangedKV<TKey, TValue>(TKey Key, TValue Value) where TKey : unmanaged where TValue : unmanaged { }
 }

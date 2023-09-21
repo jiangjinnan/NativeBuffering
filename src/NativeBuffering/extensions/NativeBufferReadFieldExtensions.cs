@@ -36,7 +36,7 @@ namespace NativeBuffering
         }
 
         public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> ReadUnmanagedUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index) 
-            where TKey : unmanaged, IComparable<TKey>
+            where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
@@ -44,7 +44,7 @@ namespace NativeBuffering
         }
 
         public static ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> ReadUnmanagedBufferedObjectDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
-            where TKey : unmanaged, IComparable<TKey>
+            where TKey : unmanaged, IEquatable<TKey>
             where TValue : IReadOnlyBufferedObject<TValue>
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));

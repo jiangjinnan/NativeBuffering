@@ -1,15 +1,13 @@
 ﻿namespace NativeBuffering.Test
 {
-    public class ScalarBufferedMessageFixture
+    public partial class ScalarBufferedMessageFixture
     {
         [Fact]
         public void GetValue()
         {
             var source = new Source(1, new Foobar(3, 4), "foobar", new byte[] { 1, 2, 3 });
-            var buffer = new byte[source.CalculateSize()];
-            var context = new BufferedObjectWriteContext(buffer);
-            source.Write(context);
-            var message = Message.Parse(new NativeBuffer(buffer, 0));
+            using var pooledMessage = source.AsBufferedMessage<SourceBufferedMessage>();
+            var message = pooledMessage.BufferedMessage;
 
             Assert.Equal(1, message.Primitive);
             Assert.Equal(3, message.Unmanaged.Foo);
@@ -24,7 +22,8 @@
         }
 
         public readonly record struct Foobar(int Foo, long Bar);
-        public class Source : IBufferedObjectSource
+        [BufferedMessageSource]
+        public partial class Source 
         {
             public Source(int primitive, Foobar foobar, string @string, byte[] bytes)
             {
@@ -37,38 +36,7 @@
             public int Primitive { get; }
             public Foobar Unmanaged { get; }
             public string String { get; }
-            public byte[] Bytes { get; }
-            public int CalculateSize()
-            {
-                var size = 0;
-                size += Utilities.CalculateUnmanagedFieldSize(Primitive);
-                size += Utilities.CalculateUnmanagedFieldSize(Unmanaged);
-                size += Utilities.CalculateStringFieldSize(String);
-                size += Utilities.CalculateBinaryFieldSize(Bytes);
-
-                return size;
-            }
-
-            public void Write(BufferedObjectWriteContext context)
-            {
-                using var scope = new BufferedObjectWriteContextScope(context);
-                scope.WriteUnmanagedField(Primitive);
-                scope.WriteUnmanagedField(Unmanaged);
-                scope.WriteStringField(String);
-                scope.WriteBinaryField(Bytes);
-            }
-        }
-
-        public unsafe readonly struct Message : IReadOnlyBufferedObject<Message>
-        {
-            public Message(NativeBuffer buffer) => Buffer = buffer;
-            public NativeBuffer Buffer { get; }
-
-            public int Primitive => Buffer.ReadUnmanagedField<int>(0);
-            public ref Foobar Unmanaged => ref Buffer.ReadUnmanagedFieldAsRef<Foobar>(1);
-            public string String => Buffer.ReadBufferedObjectField<BufferedString>(2);
-            public BufferedBinary Bytes => Buffer.ReadBufferedObjectField<BufferedBinary>(3);
-            public static Message Parse(NativeBuffer buffer) => new(buffer);
+            public byte[] Bytes { get; }            
         }
     }
 }

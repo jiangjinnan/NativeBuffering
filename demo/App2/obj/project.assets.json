@@ -1,0 +1,100 @@
+{
+  "version": 3,
+  "targets": {
+    "net7.0": {
+      "NativeBuffering/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v7.0",
+        "compile": {
+          "bin/placeholder/NativeBuffering.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/NativeBuffering.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "NativeBuffering/1.0.0": {
+      "type": "project",
+      "path": "../../src/NativeBuffering/NativeBuffering.csproj",
+      "msbuildProject": "../../src/NativeBuffering/NativeBuffering.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net7.0": [
+      "NativeBuffering >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\jinnan\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "D:\\Projects\\repos\\NativeBuffering\\demo\\App2\\App2.csproj",
+      "projectName": "App2",
+      "projectPath": "D:\\Projects\\repos\\NativeBuffering\\demo\\App2\\App2.csproj",
+      "packagesPath": "C:\\Users\\jinnan\\.nuget\\packages\\",
+      "outputPath": "D:\\Projects\\repos\\NativeBuffering\\demo\\App2\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\jinnan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net7.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "http://api.nuget.17usoft.com/v3/index.json": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "projectReferences": {
+            "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering\\NativeBuffering.csproj": {
+              "projectPath": "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering\\NativeBuffering.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net7.0": {
+        "targetAlias": "net7.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
+      }
+    }
+  },
+  "logs": [
+    {
+      "code": "NU1803",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "You are running the 'restore' operation with an 'HTTP' source, 'http://api.nuget.17usoft.com/v3/index.json'. Non-HTTPS access will be removed in a future version. Consider migrating to an 'HTTPS' source."
+    }
+  ]
+}

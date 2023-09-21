@@ -1,25 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 
 namespace NativeBuffering
 {
     public unsafe static class BufferedMessageWriteContextCollectionExtensions
     {
-        public static void WriteUnmanagedCollection<T>(this BufferedObjectWriteContext context ,IEnumerable<T> collection) where T : unmanaged
+        public static void WriteUnmanagedCollection<T>(this BufferedObjectWriteContext context, IEnumerable<T> collection) where T : unmanaged
         {
+            context.EnsureAlignment(IntPtr.Size);
             context.WriteUnmanaged(collection.Count());
+            context.Advance(IntPtr.Size - sizeof(int));
             foreach (var item in collection)
             {
+                context.AddPaddingBytes(AlignmentCalculator.AlignmentOf<T>());
                 context.WriteUnmanaged(item);
             }
         }
 
-        public static void WriteStringCollection(this BufferedObjectWriteContext context, IEnumerable<string> collection) 
+        public static void WriteStringCollection(this BufferedObjectWriteContext context, IEnumerable<string> collection)
             => context.WriteVariableLengthTypedCollection(collection, (ctx, element) => ctx.WriteString(element));
 
         public static void WriteBinaryCollection(this BufferedObjectWriteContext context, IEnumerable<byte[]> collection)
@@ -33,13 +30,15 @@ namespace NativeBuffering
 
         public static void WriteVariableLengthTypedCollection<T>(this BufferedObjectWriteContext context, IEnumerable<T> collection, Action<BufferedObjectWriteContext, T> elementWriter)
         {
+            context.EnsureAlignment(IntPtr.Size);
             var count = collection.Count();
             context.WriteUnmanaged(count);
             var indexStart = context.Position;
-            context.Advance(count * sizeof(int));
+            context.Advance(count * sizeof(int));           
             var index = 0;
             foreach (var item in collection)
             {
+                context.AddPaddingBytes(IntPtr.Size);
                 WriteReference(context, indexStart, index++);
                 elementWriter(context, item);
             }
@@ -47,8 +46,11 @@ namespace NativeBuffering
 
         internal static void WriteReference(this BufferedObjectWriteContext context, int start, int index)
         {
-            var pointer = Unsafe.AsPointer(ref context.Bytes[start + sizeof(int) * index]);
-            Unsafe.Write(pointer, context.Position);
+            if (!context.IsSizeCalculateMode)
+            {
+                var pointer = Unsafe.AsPointer(ref context.Bytes[start + sizeof(int) * index]);
+                Unsafe.Write(pointer, context.Position);
+            }
         }
     }
 }

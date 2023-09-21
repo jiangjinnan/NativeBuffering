@@ -1,9 +1,6 @@
-﻿using NativeBuffering;
-using NativeBuffering.Collections;
-
-namespace BufferedMessaging.Test
+﻿namespace NativeBuffering.Test
 {
-    public class BinaryCollectionFixture
+    public partial class BinaryCollectionFixture
     {
         [Fact]
         public void GetValue()
@@ -12,7 +9,8 @@ namespace BufferedMessaging.Test
             var buffer = new byte[source.CalculateSize()];
             var context = new BufferedObjectWriteContext(buffer);
             source.Write(context);
-            var message = Message.Parse(new NativeBuffer(buffer, 0));
+            using var pooledMessage = source.AsBufferedMessage<SourceBufferedMessage>();
+            var message = pooledMessage.BufferedMessage;
             Assert.Equal(3, message.Value.Count);
 
             Assert.True(message.Value[0].AsSpan().ToArray().All(it => it == 1));
@@ -20,29 +18,15 @@ namespace BufferedMessaging.Test
             Assert.True(message.Value[2].AsSpan().ToArray().All(it => it == 3));
         }
 
-        public class Source : IBufferedObjectSource
+        [BufferedMessageSource]
+        public partial class Source
         {
             public Source(List<byte[]> value)
             {
                 Value = value;
             }
 
-            public List<byte[]> Value { get; }
-            public int CalculateSize() => Utilities.CalculateCollectionFieldSize(Value);
-
-            public void Write(BufferedObjectWriteContext context)
-            {
-                using var scope = new BufferedObjectWriteContextScope(context);
-                scope.WriteBinaryCollectionField(Value);
-            }
-        }
-
-        public unsafe readonly struct Message : IReadOnlyBufferedObject<Message>
-        {
-            public Message(NativeBuffer buffer)=> Buffer = buffer;
-            public NativeBuffer Buffer { get; }
-            public ReadOnlyVariableLengthTypeList<BufferedBinary> Value => Buffer.ReadBufferedObjectCollectionField<BufferedBinary>(0);
-            public static Message Parse(NativeBuffer buffer) => new Message(buffer);
+            public IList<byte[]> Value { get; }
         }
     }
 }

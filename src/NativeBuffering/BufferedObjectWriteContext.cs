@@ -7,33 +7,55 @@ namespace NativeBuffering
     {
         private static readonly IntPtr _stringTypeHandle = typeof(string).TypeHandle.Value;
         private int _position = 0;
+        public bool IsSizeCalculateMode { get; } = false;
         public byte[] Bytes { get; }
         public int Position => _position;
         public void* PositionAsPointer => Unsafe.AsPointer(ref Bytes[_position]);
-        public BufferedObjectWriteContext(byte[] buffer) => Bytes = buffer;
+        public BufferedObjectWriteContext(byte[] buffer, bool isSizeCalculateMode = false)
+        {
+            Bytes = buffer;
+            IsSizeCalculateMode = isSizeCalculateMode;
+        }
+        public static BufferedObjectWriteContext CreateForSizeCalculation() => new(Array.Empty<byte>(), true);
         public void Advance(int step) => _position += step;
         public unsafe void WriteUnmanaged<T>(T value) where T : unmanaged
         {
-            Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), value);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), value);
+            }
             _position += sizeof(T);
         }
         public void WriteString(string value)
         {
-            var size = Utilities.CalculateStringSize(value);
+            var size = BufferedString.CalculateStringSize(value);
 
-            Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), size);
-            _position += sizeof(int) + sizeof(nint);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), size);
+            }
+            _position += sizeof(int) + (IntPtr.Size - sizeof(int)) + IntPtr.Size;
 
-            Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), _stringTypeHandle);
-            _position += sizeof(nint);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), _stringTypeHandle);
+            }
+            _position += IntPtr.Size;
 
-            Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), value?.Length ?? 0);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), value?.Length ?? 0);
+            }
             _position += sizeof(int);
 
             if (!string.IsNullOrEmpty(value))
             {
                 var bytes = Encoding.Unicode.GetBytes(value);
-                Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
+                if (!IsSizeCalculateMode)
+                {
+                    Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
+                }
+
                 if (IntPtr.Size == 4 || bytes.Length >= 4)
                 {
                     _position += bytes.Length;
@@ -50,12 +72,31 @@ namespace NativeBuffering
         }
         public void WriteBytes(Span<byte> bytes)
         {
-            Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), bytes.Length);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), bytes.Length);
+            }
             _position += sizeof(int);
-
-            Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
+            if (!IsSizeCalculateMode)
+            {
+                Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
+            }
             _position += bytes.Length;
         }
-        public void WriteByteCount(int count)=> WriteUnmanaged(count);
+        public int AddPaddingBytes(int alignment)
+        {
+            var paddingBytes = _position % alignment;
+            if (paddingBytes != 0)
+            {
+                paddingBytes = alignment - paddingBytes;                
+                _position += paddingBytes;
+            }
+            return _position;
+        }
+
+        public void EnsureAlignment(int alignment)
+        {
+           if(_position % alignment != 0) throw new InvalidOperationException($"Position is not aligned to {alignment} bytes");
+        }
     }
 }

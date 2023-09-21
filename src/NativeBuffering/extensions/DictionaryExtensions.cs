@@ -5,12 +5,12 @@ namespace NativeBuffering
     public static class DictionaryExtensions
     {
         public static Dictionary<TKey, TValue> Materialize<TKey, TValue>(this ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> bufferedDictionary)
-        where TKey : unmanaged, IComparable<TKey>
+        where TKey : unmanaged, IEquatable<TKey>
         where TValue : unmanaged
             => bufferedDictionary.ToDictionary(kv => kv.Key, kv => kv.Value);
 
         public static Dictionary<TKey, TValue> Materialize<TKey, TValue>(this ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> bufferedDictionary)
-        where TKey : unmanaged, IComparable<TKey>
+        where TKey : unmanaged, IEquatable<TKey>
         where TValue : IReadOnlyBufferedObject<TValue>
             => bufferedDictionary.ToDictionary(kv => kv.Key, kv => kv.Value);
 
