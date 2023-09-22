@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.IO.Pipes;
 
 namespace NativeBuffering.Generator
 {
@@ -8,6 +9,8 @@ namespace NativeBuffering.Generator
         {
             PropertySymbol = propertySymbol;
             Kind = kind;
+            IsNullable = propertySymbol.Type.IsNullable(out var underlyingTypeSymbol);
+            NullableUnderlyingType = underlyingTypeSymbol;
         }
 
         public IPropertySymbol PropertySymbol { get; }
@@ -18,5 +21,7 @@ namespace NativeBuffering.Generator
         public ITypeSymbol? ValueType { get; set; }
 
         public string? BufferedMessageTypeName { get; set; }
+        public bool IsNullable { get; }
+        public ITypeSymbol? NullableUnderlyingType { get;  }
     }
 }

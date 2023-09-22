@@ -1,6 +1,6 @@
 ﻿namespace NativeBuffering
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class| AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
     public class BufferedMessageSourceAttribute : Attribute
     {
         public string? BufferedMessageClassName { get; set; }

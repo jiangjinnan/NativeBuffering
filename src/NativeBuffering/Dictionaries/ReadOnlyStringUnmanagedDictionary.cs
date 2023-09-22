@@ -9,6 +9,7 @@ namespace NativeBuffering.Dictionaries
     public unsafe readonly struct ReadOnlyStringUnmanagedDictionary<TValue> : IReadOnlyDictionary<string, TValue>, IReadOnlyBufferedObject<ReadOnlyStringUnmanagedDictionary<TValue>>
          where TValue : unmanaged
     {
+        public static ReadOnlyStringUnmanagedDictionary<TValue> DefaultValue { get; } = new(new NativeBuffer(new byte[4]));
         public ReadOnlyStringUnmanagedDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[string key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
 
@@ -84,13 +85,13 @@ namespace NativeBuffering.Dictionaries
         public Enumerator GetEnumerator() => new(this);
         IEnumerator<KeyValuePair<string, TValue>> IEnumerable<KeyValuePair<string, TValue>>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        private ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>> GetDictionaryEntry(int index)
+        private ReadOnlyNonNullableBufferedObjectList<StringUnmanagedPair<TValue>> GetDictionaryEntry(int index)
         {
             var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
-            return position == -1 ? ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Empty : ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Parse(Buffer.CreateByIndex(position));
+            return position == -1 ? ReadOnlyNonNullableBufferedObjectList<StringUnmanagedPair<TValue>>.DefaultValue : ReadOnlyNonNullableBufferedObjectList<StringUnmanagedPair<TValue>>.Parse(Buffer.CreateByIndex(position));
         }
 
-        private static bool TryGetKV(ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>> entry, string key, [MaybeNullWhen(false)] out StringUnmanagedPair<TValue> kv)
+        private static bool TryGetKV(ReadOnlyNonNullableBufferedObjectList<StringUnmanagedPair<TValue>> entry, string key, [MaybeNullWhen(false)] out StringUnmanagedPair<TValue> kv)
         {
             for (var index = 0; index < entry.Count; index++)
             {
@@ -111,7 +112,7 @@ namespace NativeBuffering.Dictionaries
             private readonly ReadOnlyStringUnmanagedDictionary<TValue> _dictionary;
             private KeyValuePair<string, TValue> _current;
             private int _entryIndex = 0;
-            private ReadOnlyVariableLengthTypeList<StringUnmanagedPair<TValue>>.Enumerator _entryEnerator;
+            private ReadOnlyNonNullableBufferedObjectList<StringUnmanagedPair<TValue>>.Enumerator _entryEnerator;
 
             public Enumerator(ReadOnlyStringUnmanagedDictionary<TValue> dictionary)
             {

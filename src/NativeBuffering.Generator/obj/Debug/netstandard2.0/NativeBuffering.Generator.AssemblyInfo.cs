@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NativeBuffering.Generator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.1.2")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.3")]
 [assembly: System.Reflection.AssemblyProductAttribute("NativeBuffering.Generator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NativeBuffering.Generator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.1.2")]

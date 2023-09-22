@@ -28,6 +28,8 @@ namespace NativeBuffering
         }
         public void WriteString(string value)
         {
+            if(value is null) throw new ArgumentNullException(nameof(value));
+
             var size = BufferedString.CalculateStringSize(value);
 
             if (!IsSizeCalculateMode)
@@ -77,7 +79,7 @@ namespace NativeBuffering
                 Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), bytes.Length);
             }
             _position += sizeof(int);
-            if (!IsSizeCalculateMode)
+            if (!IsSizeCalculateMode && bytes.Length > 0)
             {
                 Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
             }

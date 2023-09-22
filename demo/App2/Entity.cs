@@ -1,18 +1,32 @@
-﻿using NativeBuffering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿#nullable disable
+using NativeBuffering;
 
 [BufferedMessageSource]
 public partial class Entity
 {
-    public long Foo { get; set; }
-    public UnmanangedStruct Bar { get; set; }
-    public byte[] Baz { get; set; }
-    public string Qux { get; set; }
-}
-public readonly record struct UnmanangedStruct(int X, double Y);
+    public int Primitive { get; set; }
+    public Foobar Unmanaged { get; set; }
+    public byte[] Bytes { get; set; }
+    public string String { get; set; }
+    public Foobarbaz BufferedObject { get; set; }
 
+    public IEnumerable<int> PrimitiveList { get; set; }
+    public IEnumerable<Foobar> UnmanagedList { get; set; }
+    public IEnumerable<string> StringList { get; set; }
+    public IEnumerable<Foobarbaz> BufferedObjectList { get; set; }
+}
+
+[BufferedMessageSource]
+public partial class Foobarbaz
+{
+    public Foobarbaz(Foobar foobar, string baz)
+    {
+        Foobar = foobar;
+        Baz = baz;
+    }
+    public Foobar Foobar { get; }
+    public string Baz { get; }
+}
+public readonly record struct Foobar(int Foo, long Bar);
+
+#nullable restore

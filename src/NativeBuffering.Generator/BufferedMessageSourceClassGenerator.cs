@@ -6,11 +6,19 @@ namespace NativeBuffering.Generator
     {
         public void Generate(BufferedObjectMetadata metadata, CodeGenerationContext context)
         {
-            context.WriteLines($"public partial class {metadata.TypeSymbol.Name} : IBufferedObjectSource");
+            if(metadata.TypeSymbol.IsValueType)
+            {
+                context.WriteLines($"public partial struct {metadata.TypeSymbol.Name} : IBufferedObjectSource");
+            }
+            else
+            {
+                context.WriteLines($"public partial class {metadata.TypeSymbol.Name} : IBufferedObjectSource");
+            }
             using (context.CodeBlock())
             {
                 GenerateCalculateSizeMethod(metadata, context);
                 GenerateWriteMethod(metadata, context);
+                GenerateConstructor(metadata, context);
             }
         }
 
@@ -64,6 +72,17 @@ namespace NativeBuffering.Generator
                         _ => throw new NotSupportedException("Will never hit here!")
                     };
                 }               
+            }
+        }
+
+        private void GenerateConstructor(BufferedObjectMetadata metadata, CodeGenerationContext context)
+        {
+            if (metadata.TypeSymbol is INamedTypeSymbol namedTypeSymbol)
+            { 
+                if (!namedTypeSymbol.Constructors.Any(it=>it.Parameters.Length ==0 && !it.IsStatic && it.DeclaredAccessibility == Accessibility.Public))
+                {
+                    context.WriteLines($"public {metadata.TypeSymbol.Name}() {{ }}");                              
+                }
             }
         }
     }

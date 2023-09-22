@@ -3,7 +3,8 @@
 namespace NativeBuffering
 {
     public unsafe readonly struct NativeBuffer
-    {
+    {      
+
         public byte[] Bytes { get; }
         private readonly int _index;
 

@@ -26,7 +26,7 @@ namespace NativeBuffering
                 if (group.TryGetValue(index, out var kvs))
                 {
                     context.AddPaddingBytes(IntPtr.Size); // align to pointer size
-                    context.WriteReference(indexStart, index);
+                    context.WriteReference(indexStart, index, false);
                     context.WriteUnmanaged(kvs.Count());
                     context.Advance(IntPtr.Size - sizeof(int)); // align to pointer size
                     foreach (var item in kvs)
@@ -99,7 +99,7 @@ namespace NativeBuffering
                 if (group.TryGetValue(index, out var kvs))
                 {
                     context.AddPaddingBytes(IntPtr.Size); // align to pointer size
-                    context.WriteReference(indexStart, index);
+                    context.WriteReference(indexStart, index, false);
                     context.WriteKVs(kvs, keyWriter, valueWriter, valueAlignment);
                 }
                 else
@@ -128,7 +128,7 @@ namespace NativeBuffering
             {
                 context.AddPaddingBytes(IntPtr.Size); 
 
-                context.WriteReference(indexStart, index++);
+                context.WriteReference(indexStart, index++, false);
                 keyWriter(context, item.Key);
                 context.AddPaddingBytes(valueAlignment);
                 valueWriter(context, item.Value);

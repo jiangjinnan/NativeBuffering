@@ -9,6 +9,7 @@ namespace NativeBuffering.Dictionaries
          where TKey : unmanaged, IEquatable<TKey>
          where TValue : unmanaged
     {
+        public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> DefaultValue { get; } = new(new NativeBuffer(new byte[4]));
         public ReadOnlyUnmanagedUnmanagedDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[TKey key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
         public ref TValue AsRef(TKey key)
@@ -86,7 +87,7 @@ namespace NativeBuffering.Dictionaries
         private BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue> GetDictionaryEntry(int index)
         {
             var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
-            return position == -1 ? BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Empty : BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Parse(Buffer.CreateByIndex(position));
+            return position == -1 ? BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.DefaultValue : BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue>.Parse(Buffer.CreateByIndex(position));
         }
 
         public struct Enumerator : IEnumerator<KeyValuePair<TKey, TValue>>

@@ -10,6 +10,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="D:\Work\Projects\native-buffering\src\NativeBuffering\bin\Release\net7.0\NativeBuffering.dll" target="lib\net7.0\NativeBuffering.dll" />
+    <file src="D:\Projects\repos\NativeBuffering\src\NativeBuffering\bin\Release\net7.0\NativeBuffering.dll" target="lib\net7.0\NativeBuffering.dll" />
   </files>
 </package>

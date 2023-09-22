@@ -10,6 +10,7 @@ namespace NativeBuffering.Dictionaries
          where TKey : unmanaged, IEquatable<TKey>
          where TValue : IReadOnlyBufferedObject<TValue>
     {
+        public static ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> DefaultValue { get; } = new(new NativeBuffer(new byte[4]));
         public ReadOnlyUnmanagedBufferedObjectDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[TKey key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
         public NativeBuffer Buffer { get; }
@@ -74,14 +75,14 @@ namespace NativeBuffering.Dictionaries
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        private ReadOnlyVariableLengthTypeList<UnmanagedBufferedObjectPair<TKey, TValue>> GetDictionaryEntry(int index)
+        private ReadOnlyNonNullableBufferedObjectList<UnmanagedBufferedObjectPair<TKey, TValue>> GetDictionaryEntry(int index)
         {
             var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
-            return position == -1 ? ReadOnlyVariableLengthTypeList<UnmanagedBufferedObjectPair<TKey, TValue>>.Empty : ReadOnlyVariableLengthTypeList<UnmanagedBufferedObjectPair<TKey, TValue>>.Parse(Buffer.CreateByIndex(position));
+            return position == -1 ? ReadOnlyNonNullableBufferedObjectList<UnmanagedBufferedObjectPair<TKey, TValue>>.DefaultValue : ReadOnlyNonNullableBufferedObjectList<UnmanagedBufferedObjectPair<TKey, TValue>>.Parse(Buffer.CreateByIndex(position));
         }
 
         private static bool TryGetKV(
-            ReadOnlyVariableLengthTypeList<UnmanagedBufferedObjectPair<TKey, TValue>> entry,
+            ReadOnlyNonNullableBufferedObjectList<UnmanagedBufferedObjectPair<TKey, TValue>> entry,
             TKey key,
             [MaybeNullWhen(false)] out UnmanagedBufferedObjectPair<TKey, TValue> kv)
         {
@@ -104,7 +105,7 @@ namespace NativeBuffering.Dictionaries
             private readonly ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> _dictionary;
             private KeyValuePair<TKey, TValue> _current;
             private int _entryIndex = 0;
-            private ReadOnlyVariableLengthTypeList<UnmanagedBufferedObjectPair<TKey, TValue>>.Enumerator _entryEnerator;
+            private ReadOnlyNonNullableBufferedObjectList<UnmanagedBufferedObjectPair<TKey, TValue>>.Enumerator _entryEnerator;
 
             public Enumerator(ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> dictionary)
             {

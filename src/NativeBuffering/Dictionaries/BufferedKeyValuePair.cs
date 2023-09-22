@@ -22,6 +22,7 @@ namespace NativeBuffering.NewDictionaries
             get => ref Unsafe.AsRef<TValue>(Buffer.GetPointerByOffset(_valueOffset));
         }
 
+        public static UnmanagedUnmanagedPair<TKey, TValue> DefaultValue => throw new NotImplementedException();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<TKey, TValue> AsKeyValuePair() => new(Key, Value);
@@ -46,6 +47,9 @@ namespace NativeBuffering.NewDictionaries
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => TValue.Parse(Buffer.CreateByOffset(_valueOffset));
         }
+
+        public static UnmanagedBufferedObjectPair<TKey, TValue> DefaultValue => throw new NotImplementedException();
+
         public KeyValuePair<TKey, TValue> AsKeyValuePair() => new(Key, Value);
     }
 
@@ -53,6 +57,9 @@ namespace NativeBuffering.NewDictionaries
         where TValue : unmanaged
     {
         public StringUnmanagedPair(NativeBuffer buffer) => Buffer = buffer;
+
+        public static StringUnmanagedPair<TValue> DefaultValue => throw new NotImplementedException();
+
         public NativeBuffer Buffer { get; }
         public string Key   {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,6 +85,9 @@ namespace NativeBuffering.NewDictionaries
         where TValue : IReadOnlyBufferedObject<TValue>
     {
         public StringBufferedObjectPair(NativeBuffer buffer) => Buffer = buffer;
+
+        public static StringBufferedObjectPair<TValue> DefaultValue => throw new NotImplementedException();
+
         public NativeBuffer Buffer { get; }
         public string Key {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

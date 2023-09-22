@@ -13,6 +13,7 @@
         "packagesPath": "C:\\Users\\jinnan\\.nuget\\packages\\",
         "outputPath": "D:\\Projects\\repos\\NativeBuffering\\demo\\App\\obj\\",
         "projectStyle": "PackageReference",
+        "crossTargeting": true,
         "configFilePaths": [
           "C:\\Users\\jinnan\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -44,6 +45,12 @@
       "frameworks": {
         "net7.0": {
           "targetAlias": "net7.0",
+          "dependencies": {
+            "BenchmarkDotNet": {
+              "target": "Package",
+              "version": "[0.13.8, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -55,12 +62,17 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
         }
       }
     },
     "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering\\NativeBuffering.csproj": {
-      "version": "1.0.0",
+      "version": "0.1.2",
       "restore": {
         "projectUniqueName": "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering\\NativeBuffering.csproj",
         "projectName": "NativeBuffering",

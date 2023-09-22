@@ -5,7 +5,7 @@
   },
   "projects": {
     "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering.Generator\\NativeBuffering.Generator.csproj": {
-      "version": "1.0.0",
+      "version": "0.1.3",
       "restore": {
         "projectUniqueName": "D:\\Projects\\repos\\NativeBuffering\\src\\NativeBuffering.Generator\\NativeBuffering.Generator.csproj",
         "projectName": "NativeBuffering.Generator",

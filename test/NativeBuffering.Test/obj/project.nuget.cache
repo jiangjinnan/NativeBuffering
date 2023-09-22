@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "7cAGiOs8iGkpur33pm/mVYlePqt+P+7AuZ/NEicQggcbg7YCaeqWimFWjDOJFbO3FNTltWJk6IuF7uVTM1zk3Q==",
+  "dgSpecHash": "BaR6lxz8sMB06J3eA9FAK2M6+t+kVKsMLkkB5GpJch1+TJT7QSc/viL2DXAnY78qeSBjIhcN3Z2Hezm3qJtapQ==",
   "success": true,
   "projectFilePath": "D:\\Projects\\repos\\NativeBuffering\\test\\NativeBuffering.Test\\NativeBuffering.Test.csproj",
   "expectedPackageFiles": [
@@ -92,7 +92,8 @@
     "C:\\Users\\jinnan\\.nuget\\packages\\xunit.core\\2.4.2\\xunit.core.2.4.2.nupkg.sha512",
     "C:\\Users\\jinnan\\.nuget\\packages\\xunit.extensibility.core\\2.4.2\\xunit.extensibility.core.2.4.2.nupkg.sha512",
     "C:\\Users\\jinnan\\.nuget\\packages\\xunit.extensibility.execution\\2.4.2\\xunit.extensibility.execution.2.4.2.nupkg.sha512",
-    "C:\\Users\\jinnan\\.nuget\\packages\\xunit.runner.visualstudio\\2.4.5\\xunit.runner.visualstudio.2.4.5.nupkg.sha512"
+    "C:\\Users\\jinnan\\.nuget\\packages\\xunit.runner.visualstudio\\2.4.5\\xunit.runner.visualstudio.2.4.5.nupkg.sha512",
+    "C:\\Users\\jinnan\\.nuget\\packages\\nativebuffering\\0.1.2\\nativebuffering.0.1.2.nupkg.sha512"
   ],
   "logs": [
     {

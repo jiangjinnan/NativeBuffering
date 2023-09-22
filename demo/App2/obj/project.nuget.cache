@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "jEM5bNjgc0WvGE3eSd89m5mC693FB8wcwIrBSJStSCkvkqfkK2tO55t77VdWZLYZEKCZ384FLoR7fWXKL2jeWA==",
+  "dgSpecHash": "W53IdKSVOvB70jMgO5WWC4Omxua+JpHgqad84Ma0pIpcy9CV7MWsPqtlIOSBJi0Aerr5ddLc5zhVvgIcQxKaPQ==",
   "success": true,
   "projectFilePath": "D:\\Projects\\repos\\NativeBuffering\\demo\\App2\\App2.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\jinnan\\.nuget\\packages\\nativebuffering\\0.1.2\\nativebuffering.0.1.2.nupkg.sha512"
+  ],
   "logs": [
     {
       "code": "NU1803",

@@ -9,8 +9,11 @@ namespace NativeBuffering.Generator
         public void Generate(BufferedObjectMetadata metadata, CodeGenerationContext context)
         {
             context.WriteLines($"public unsafe readonly struct {metadata.BufferedMessageClassName} : IReadOnlyBufferedObject<{metadata.BufferedMessageClassName}>");
+           
             using (context.CodeBlock())
             {
+                context.WriteLines($"public static {metadata.BufferedMessageClassName} DefaultValue => throw new NotImplementedException();");
+
                 context.WriteLines("public NativeBuffer Buffer { get; }");
                 context.WriteLines($"public {metadata.BufferedMessageClassName}(NativeBuffer buffer) => Buffer = buffer;");
                 context.WriteLines($"public static {metadata.BufferedMessageClassName} Parse(NativeBuffer buffer) => new {metadata.BufferedMessageClassName}(buffer);");
@@ -71,6 +74,8 @@ namespace NativeBuffering.Generator
                         if (elementTypeSymbol!.IsString())
                         {
                             elementFullTypeName = "BufferedString";
+                            context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<{elementFullTypeName}> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<BufferedString>({index});");
+                            continue;
                         }
                         if (elementTypeSymbol!.IsBinary())
                         {
@@ -79,54 +84,93 @@ namespace NativeBuffering.Generator
 
                         if (elementTypeSymbol!.IsUnmanagedType)
                         {
-                            context.WriteLines($"public ReadOnlyFixedLengthTypedList<{elementFullTypeName}> {propertyName} => Buffer.ReadUnmanagedCollectionField<{elementFullTypeName}>({index});");
+                            if (elementTypeSymbol.IsNullable(out var underlyingTypeSymbol))
+                            {
+                                context.WriteLines($"public ReadOnlyNullableUnmanagedList<{underlyingTypeSymbol!.GetFullName()}> {propertyName} => Buffer.ReadNullableUnmanagedCollectionField<{underlyingTypeSymbol!.GetFullName()}>({index});");
+                            }
+                            else
+                            {
+                                context.WriteLines($"public ReadOnlyNonNullableUnmanagedList<{elementFullTypeName}> {propertyName} => Buffer.ReadNonNullableUnmanagedCollectionField<{elementFullTypeName}>({index});");
+                            }
                             continue;
                         }
 
                         if(elementTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
                         {
-                            context.WriteLines($"public ReadOnlyVariableLengthTypeList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
+                            if (elementTypeSymbol.IsNullable(out _) || !elementTypeSymbol.IsValueType)
+                            {
+                                context.WriteLines($"public ReadOnlyNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
+                            }
+                            else
+                            {
+                                context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
+                            }
                             continue;
                         }
 
-                        context.WriteLines($"public ReadOnlyVariableLengthTypeList<{elementFullTypeName}> {propertyName} => Buffer.ReadBufferedObjectCollectionField<{elementFullTypeName}>({index});");
+                        context.WriteLines($"public ReadOnlyNullableBufferedObjectList<{elementFullTypeName}> {propertyName} => Buffer.ReadNullableBufferedObjectCollectionField<{elementFullTypeName}>({index});");
                         continue;
                     }
                     #endregion
 
                     #region Scalar
                     if (propertyType.IsPrimitive())
-                    { 
-                        context.WriteLines($"public {propertyType.GetFullName()} {propertyName} => Buffer.ReadUnmanagedField<{propertyType.GetFullName()}>({index});");
-                        continue;
+                    {
+                        if (property.IsNullable)
+                        {
+                            context.WriteLines($"public {property.NullableUnderlyingType!.GetFullName()}? {propertyName} => Buffer.ReadNullableUnmanagedField<{property.NullableUnderlyingType!.GetFullName()}>({index});");
+                            continue;
+                        }
+                        else
+                        {
+                            context.WriteLines($"public {propertyType.GetFullName()} {propertyName} => Buffer.ReadUnmanagedField<{propertyType.GetFullName()}>({index});");
+                            continue;
+                        }
                     }
 
                     if (propertyType.IsUnmanagedType)
-                    { 
-                        context.WriteLines($"public ref readonly {propertyType.GetFullName()} {propertyName} => ref Buffer.ReadUnmanagedFieldAsRef<{propertyType.GetFullName()}>({index});");
-                        continue;
+                    {
+                        if (property.IsNullable)
+                        {
+                            context.WriteLines($"public {property.NullableUnderlyingType!.GetFullName()}? {propertyName} => Buffer.ReadNullableUnmanagedField<{property.NullableUnderlyingType!.GetFullName()}>({index});");
+                            continue;
+                        }
+                        else
+                        {
+                            context.WriteLines($"public ref readonly {propertyType.GetFullName()} {propertyName} => ref Buffer.ReadUnmanagedFieldAsRef<{propertyType.GetFullName()}>({index});");
+                            continue;
+                        }
                     }
 
                     if(propertyType.IsString())
                     {
-                        context.WriteLines($"public BufferedString {propertyName} => Buffer.ReadBufferedObjectField<BufferedString>({index});");
+                        context.WriteLines($"public BufferedString {propertyName} => Buffer.ReadNonNullableBufferedObjectField<BufferedString>({index});");
                         continue;
                     }
 
                     if(propertyType.IsBinary())
                     {
-                        context.WriteLines($"public BufferedBinary {propertyName} => Buffer.ReadBufferedObjectField<BufferedBinary>({index});");
+                        context.WriteLines($"public BufferedBinary {propertyName} => Buffer.ReadNonNullableBufferedObjectField<BufferedBinary>({index});");
                         continue;
                     }
 
                     if(propertyType.IsBufferedMessageSource(out bufferedMessageTypeName))
                     {
-                        context.WriteLines($"public {bufferedMessageTypeName} {propertyName} => Buffer.ReadBufferedObjectField<{bufferedMessageTypeName}>({index});");
+                        if (property.IsNullable || !propertyType.IsValueType)
+                        {
+                            context.WriteLines($"public {bufferedMessageTypeName}? {propertyName} => Buffer.ReadNullableBufferedObjectField<{bufferedMessageTypeName}>({index});");
+                        }
+                        else
+                        {
+                            context.WriteLines($"public {bufferedMessageTypeName} {propertyName} => Buffer.ReadNonNullableBufferedObjectField<{bufferedMessageTypeName}>({index});");
+                        }
                         continue;
                     }
                     #endregion
                 }
             }
+
+            
         }
     }
 }

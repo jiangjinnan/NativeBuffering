@@ -9,22 +9,23 @@ namespace NativeBuffering.Dictionaries
     public unsafe readonly struct ReadOnlyStringBufferedObjectDictionary<TValue> : IReadOnlyDictionary<string, TValue>, IReadOnlyBufferedObject<ReadOnlyStringBufferedObjectDictionary<TValue>>
          where TValue : IReadOnlyBufferedObject<TValue>
     {
+        public static ReadOnlyStringBufferedObjectDictionary<TValue> DefaultValue { get; } = new(new NativeBuffer(new byte[4]));
         public ReadOnlyStringBufferedObjectDictionary(NativeBuffer buffer) => Buffer = buffer;
         public TValue this[string key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
         public NativeBuffer Buffer { get; }
         public IEnumerable<string> Keys
         {
             get
-            { 
-                if(Count == 0)
+            {
+                if (Count == 0)
                 {
                     return Enumerable.Empty<string>();
-                }   
+                }
                 var keys = new List<string>(Count);
                 for (int index = 0; index < EntrySlotCount; index++)
                 {
                     var kv = GetDictionaryEntry(index);
-                    keys.AddRange(kv.Select(it=>it.Key));
+                    keys.AddRange(kv.Select(it => it.Key));
                 }
                 return keys;
             }
@@ -32,8 +33,8 @@ namespace NativeBuffering.Dictionaries
         public IEnumerable<TValue> Values
         {
             get
-            { 
-                if(Count == 0)
+            {
+                if (Count == 0)
                 {
                     return Enumerable.Empty<TValue>();
                 }
@@ -41,7 +42,7 @@ namespace NativeBuffering.Dictionaries
                 for (int index = 0; index < EntrySlotCount; index++)
                 {
                     var kv = GetDictionaryEntry(index);
-                    values.AddRange(kv.Select(it=>it.Value));
+                    values.AddRange(kv.Select(it => it.Value));
                 }
                 return values;
             }
@@ -49,13 +50,13 @@ namespace NativeBuffering.Dictionaries
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get =>DictionaryUtilities.GetCount(Buffer);
+            get => DictionaryUtilities.GetCount(Buffer);
         }
         public int EntrySlotCount
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => DictionaryUtilities.GetEntrySlotCount(Buffer);
-        } 
+        }
         public static ReadOnlyStringBufferedObjectDictionary<TValue> Parse(NativeBuffer buffer) => new(buffer);
         public bool ContainsKey(string key) => TryGetValue(key, out _);
         public bool TryGetValue(string key, [MaybeNullWhen(false)] out TValue value)
@@ -73,13 +74,13 @@ namespace NativeBuffering.Dictionaries
         public Enumerator GetEnumerator() => new(this);
         IEnumerator<KeyValuePair<string, TValue>> IEnumerable<KeyValuePair<string, TValue>>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        private ReadOnlyVariableLengthTypeList<StringBufferedObjectPair<TValue>> GetDictionaryEntry(int index)
+        private ReadOnlyNonNullableBufferedObjectList<StringBufferedObjectPair<TValue>> GetDictionaryEntry(int index)
         {
             var position = Unsafe.Read<int>(Buffer.GetPointerByOffset(sizeof(int) * (index + 2)));
-            return position == -1 ? ReadOnlyVariableLengthTypeList<StringBufferedObjectPair<TValue>>.Empty : ReadOnlyVariableLengthTypeList<StringBufferedObjectPair<TValue>>.Parse(Buffer.CreateByIndex(position));
+            return position == -1 ? ReadOnlyNonNullableBufferedObjectList<StringBufferedObjectPair<TValue>>.DefaultValue : ReadOnlyNonNullableBufferedObjectList<StringBufferedObjectPair<TValue>>.Parse(Buffer.CreateByIndex(position));
         }
 
-        private static bool TryGetKV(ReadOnlyVariableLengthTypeList<StringBufferedObjectPair<TValue>> entry, string key, [MaybeNullWhen(false)] out StringBufferedObjectPair<TValue> kv)
+        private static bool TryGetKV(ReadOnlyNonNullableBufferedObjectList<StringBufferedObjectPair<TValue>> entry, string key, [MaybeNullWhen(false)] out StringBufferedObjectPair<TValue> kv)
         {
             for (var index = 0; index < entry.Count; index++)
             {
@@ -100,7 +101,7 @@ namespace NativeBuffering.Dictionaries
             private readonly ReadOnlyStringBufferedObjectDictionary<TValue> _dictionary;
             private KeyValuePair<string, TValue> _current;
             private int _entryIndex = 0;
-            private ReadOnlyVariableLengthTypeList<StringBufferedObjectPair<TValue>>.Enumerator _entryEnerator;
+            private ReadOnlyNonNullableBufferedObjectList<StringBufferedObjectPair<TValue>>.Enumerator _entryEnerator;
 
             public Enumerator(ReadOnlyStringBufferedObjectDictionary<TValue> dictionary)
             {

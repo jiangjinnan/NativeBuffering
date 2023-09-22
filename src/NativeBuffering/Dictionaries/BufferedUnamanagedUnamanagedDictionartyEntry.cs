@@ -15,7 +15,7 @@ namespace NativeBuffering.Dictionaries
      where TKey : unmanaged, IEquatable<TKey>
      where TValue : unmanaged
     {        
-        public static readonly BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue> Empty = new(new NativeBuffer(new byte[4]));
+        public static BufferedUnamanagedUnamanagedDictionartyEntry<TKey, TValue> DefaultValue { get; } = new(new NativeBuffer(new byte[4]));
         public BufferedUnamanagedUnamanagedDictionartyEntry(NativeBuffer buffer) => Buffer = buffer;
         public NativeBuffer Buffer { get; }
         public int Count {

@@ -1,7 +1,11 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src",
+    "\\src\\NativeBuffering.Generator",
+    "\\test",
+    "\\test\\NativeBuffering.Test"
   ],
-  "SelectedNode": "\\NativeBuffering.sln",
+  "SelectedNode": "\\src\\NativeBuffering.Generator\\BufferedMessageClassGenerator.cs",
   "PreviewInSolutionExplorer": false
 }

@@ -5,7 +5,7 @@
         [Fact]
         public void GetValue()
         {
-            var source = new Source(new List<byte[]> { new byte[] { 1, 1, 1 }, new byte[] { 2, 2, 2 }, new byte[] { 3, 3, 3 } });
+            var source = new Source(new List<byte[]?> { null, new byte[] { 2, 2, 2 }, Array.Empty<byte>()});
             var buffer = new byte[source.CalculateSize()];
             var context = new BufferedObjectWriteContext(buffer);
             source.Write(context);
@@ -13,20 +13,22 @@
             var message = pooledMessage.BufferedMessage;
             Assert.Equal(3, message.Value.Count);
 
-            Assert.True(message.Value[0].AsSpan().ToArray().All(it => it == 1));
-            Assert.True(message.Value[1].AsSpan().ToArray().All(it => it == 2));
-            Assert.True(message.Value[2].AsSpan().ToArray().All(it => it == 3));
+            Assert.True(message.Value[0]!.Value.Length == 0);
+            Assert.True(message.Value[0]!.Value.AsSpan().Length == 0);
+            Assert.True(message.Value[1]!.Value.AsSpan().ToArray().All(it => it == 2));
+            Assert.True(message.Value[2]!.Value.Length == 0);
+            Assert.True(message.Value[2]!.Value.AsSpan().Length == 0);
         }
 
         [BufferedMessageSource]
         public partial class Source
         {
-            public Source(List<byte[]> value)
+            public Source(List<byte[]?> value)
             {
                 Value = value;
             }
 
-            public IList<byte[]> Value { get; }
+            public IList<byte[]?> Value { get; }
         }
     }
 }

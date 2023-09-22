@@ -8,13 +8,13 @@
     ".NETCoreApp,Version=v7.0": {
       "App2/1.0.0": {
         "dependencies": {
-          "NativeBuffering": "1.0.0"
+          "NativeBuffering": "0.1.2"
         },
         "runtime": {
           "App2.dll": {}
         }
       },
-      "NativeBuffering/1.0.0": {
+      "NativeBuffering/0.1.2": {
         "runtime": {
           "NativeBuffering.dll": {}
         }
@@ -27,7 +27,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "NativeBuffering/1.0.0": {
+    "NativeBuffering/0.1.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

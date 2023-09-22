@@ -9,7 +9,7 @@
       "NativeBuffering.Test/1.0.0": {
         "dependencies": {
           "Microsoft.NET.Test.Sdk": "17.5.0",
-          "NativeBuffering": "1.0.0",
+          "NativeBuffering": "0.1.2",
           "coverlet.collector": "3.2.0",
           "xunit": "2.4.2",
           "xunit.runner.visualstudio": "2.4.5"
@@ -1021,7 +1021,7 @@
         }
       },
       "xunit.runner.visualstudio/2.4.5": {},
-      "NativeBuffering/1.0.0": {
+      "NativeBuffering/0.1.2": {
         "runtime": {
           "NativeBuffering.dll": {}
         }
@@ -1657,7 +1657,7 @@
       "path": "xunit.runner.visualstudio/2.4.5",
       "hashPath": "xunit.runner.visualstudio.2.4.5.nupkg.sha512"
     },
-    "NativeBuffering/1.0.0": {
+    "NativeBuffering/0.1.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

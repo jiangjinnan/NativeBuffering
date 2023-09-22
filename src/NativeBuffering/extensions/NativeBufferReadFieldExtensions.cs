@@ -6,10 +6,17 @@ namespace NativeBuffering
 {
     public unsafe static class NativeBufferReadFieldExtensions
     {
+        #region Unmanaged
         public static T ReadUnmanagedField<T>(this NativeBuffer buffer, int index) where T : unmanaged
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
             return Unsafe.Read<T>(buffer.GetPointerByIndex(position));
+        }
+
+        public static T? ReadNullableUnmanagedField<T>(this NativeBuffer buffer, int index) where T : unmanaged
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return position == -1 ? null : Unsafe.Read<T>(buffer.GetPointerByIndex(position));
         }
 
         public static ref T ReadUnmanagedFieldAsRef<T>(this NativeBuffer buffer, int index) where T : unmanaged
@@ -17,25 +24,47 @@ namespace NativeBuffering
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
             return ref Unsafe.AsRef<T>(buffer.GetPointerByIndex(position));
         }
-        public static T ReadBufferedObjectField<T>(this NativeBuffer buffer, int index) where T : IReadOnlyBufferedObject<T>
-        { 
-            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return T.Parse(buffer.CreateByIndex(position));
-        }
+        #endregion
 
-        public static ReadOnlyFixedLengthTypedList<T> ReadUnmanagedCollectionField<T>(this NativeBuffer buffer, int index) where T : unmanaged
+        #region BufferedObject
+        public static T ReadNonNullableBufferedObjectField<T>(this NativeBuffer buffer, int index) where T : struct, IReadOnlyBufferedObject<T>
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyFixedLengthTypedList<T>(buffer.CreateByIndex(position));
+            return position == -1 ? T.DefaultValue: T.Parse(buffer.CreateByIndex(position));
         }
 
-        public static ReadOnlyVariableLengthTypeList<T> ReadBufferedObjectCollectionField<T>(this NativeBuffer buffer, int index) where T : IReadOnlyBufferedObject<T>
+        public static T? ReadNullableBufferedObjectField<T>(this NativeBuffer buffer, int index) where T : struct, IReadOnlyBufferedObject<T>
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyVariableLengthTypeList<T>(buffer.CreateByIndex(position));
+            return position == -1 ? null : T.Parse(buffer.CreateByIndex(position));
+        }
+        #endregion
+
+        public static ReadOnlyNonNullableUnmanagedList<T> ReadNonNullableUnmanagedCollectionField<T>(this NativeBuffer buffer, int index) where T : unmanaged
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyNonNullableUnmanagedList<T>(buffer.CreateByIndex(position));
         }
 
-        public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> ReadUnmanagedUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index) 
+        public static ReadOnlyNullableUnmanagedList<T> ReadNullableUnmanagedCollectionField<T>(this NativeBuffer buffer, int index) where T : unmanaged
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyNullableUnmanagedList<T>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyNonNullableBufferedObjectList<T> ReadNonNullableBufferedObjectCollectionField<T>(this NativeBuffer buffer, int index) where T : struct, IReadOnlyBufferedObject<T>
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return position == -1 ? ReadOnlyNonNullableBufferedObjectList<T>.DefaultValue : new ReadOnlyNonNullableBufferedObjectList<T>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyNullableBufferedObjectList<T> ReadNullableBufferedObjectCollectionField<T>(this NativeBuffer buffer, int index) where T : struct, IReadOnlyBufferedObject<T>
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return position == -1 ? ReadOnlyNullableBufferedObjectList<T>.DefaultValue : new ReadOnlyNullableBufferedObjectList<T>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> ReadUnmanagedUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {

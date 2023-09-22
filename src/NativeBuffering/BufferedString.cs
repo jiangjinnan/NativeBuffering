@@ -6,11 +6,20 @@ namespace NativeBuffering
     public unsafe readonly struct BufferedString : IReadOnlyBufferedObject<BufferedString>
     {
         private readonly void* _start;
+        public static BufferedString DefaultValue { get; }
+        static BufferedString()
+        { 
+            var size = CalculateStringSize(string.Empty);
+            var bytes = BufferPool.Rent(size).Bytes;
+            var context = new BufferedObjectWriteContext(bytes);
+            context.WriteString(string.Empty);
+            DefaultValue = new BufferedString(new NativeBuffer(bytes));
+        }
         public BufferedString(NativeBuffer buffer) => _start = buffer.Start;
         public BufferedString(void* start) => _start = start;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BufferedString Parse(NativeBuffer buffer) => new(buffer);
+        public static BufferedString Parse(NativeBuffer buffer) =>  new(buffer);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BufferedString Parse(void* start) => new(start);

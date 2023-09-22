@@ -12,7 +12,7 @@
 //    public static EntityBufferedMessage Parse(NativeBuffer buffer) => new EntityBufferedMessage(buffer);
 //    public System.Int64 Foo => Buffer.ReadUnmanagedField<System.Int64>(0);
 //    public ref readonly UnmanangedStruct Bar => ref Buffer.ReadUnmanagedFieldAsRef<UnmanangedStruct>(1);
-//    public BufferedBinary Baz => Buffer.ReadBufferedObjectField<BufferedBinary>(2);
-//    public BufferedString Qux => Buffer.ReadBufferedObjectField<BufferedString>(3);
+//    public BufferedBinary Baz => Buffer.ReadNonNullableBufferedObjectField<BufferedBinary>(2);
+//    public BufferedString Qux => Buffer.ReadNonNullableBufferedObjectField<BufferedString>(3);
 //}
 //#nullable disable

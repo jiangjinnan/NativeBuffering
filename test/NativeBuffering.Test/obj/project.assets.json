@@ -1713,7 +1713,7 @@
           "build/netcoreapp3.1/xunit.runner.visualstudio.props": {}
         }
       },
-      "NativeBuffering/1.0.0": {
+      "NativeBuffering/0.1.2": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v7.0",
         "compile": {
@@ -5517,7 +5517,7 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
-    "NativeBuffering/1.0.0": {
+    "NativeBuffering/0.1.2": {
       "type": "project",
       "path": "../../src/NativeBuffering/NativeBuffering.csproj",
       "msbuildProject": "../../src/NativeBuffering/NativeBuffering.csproj"
@@ -5526,7 +5526,7 @@
   "projectFileDependencyGroups": {
     "net7.0": [
       "Microsoft.NET.Test.Sdk >= 17.5.0",
-      "NativeBuffering >= 1.0.0",
+      "NativeBuffering >= 0.1.2",
       "coverlet.collector >= 3.2.0",
       "xunit >= 2.4.2",
       "xunit.runner.visualstudio >= 2.4.5"

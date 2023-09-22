@@ -2,7 +2,7 @@
   "version": 3,
   "targets": {
     "net7.0": {
-      "NativeBuffering/1.0.0": {
+      "NativeBuffering/0.1.2": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v7.0",
         "compile": {
@@ -15,7 +15,7 @@
     }
   },
   "libraries": {
-    "NativeBuffering/1.0.0": {
+    "NativeBuffering/0.1.2": {
       "type": "project",
       "path": "../../src/NativeBuffering/NativeBuffering.csproj",
       "msbuildProject": "../../src/NativeBuffering/NativeBuffering.csproj"
@@ -23,7 +23,7 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
-      "NativeBuffering >= 1.0.0"
+      "NativeBuffering >= 0.1.2"
     ]
   },
   "packageFolders": {

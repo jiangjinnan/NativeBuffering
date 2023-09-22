@@ -1,72 +1,44 @@
 ﻿using NativeBuffering;
 using System.Diagnostics;
 
-//var foobars = new Foobar[] { new Foobar(1, 2), new Foobar(3, 4) };
-//var foobarbaz = new Foobarbaz(foobars, new double[] {1.1,2.2 } );
-//var size = foobarbaz.CalculateSize();
-//var bytes = new byte[size];
-//var context = new BufferedObjectWriteContext(bytes);
-//foobarbaz.Write(context);
-
-//var bufferedMessage = FoobarbazBufferedMessage.Parse(new NativeBuffer(bytes));
-//Debug.Assert(bufferedMessage.Foobar.Count == 2);
-//Debug.Assert(bufferedMessage.Foobar[0].Foo == 1);
-//Debug.Assert(bufferedMessage.Foobar[0].Bar == 2);
-//Debug.Assert(bufferedMessage.Foobar[1].Foo == 3);
-//Debug.Assert(bufferedMessage.Foobar[1].Bar == 4);
-//Debug.Assert(bufferedMessage.Baz.Count == 2);
-//Debug.Assert(bufferedMessage.Baz[0] == 1.1);
-//Debug.Assert(bufferedMessage.Baz[1] == 2.2);
-
-
 var entity = new Entity
 {
-    Foo = 123,
-    Bar = new UnmanangedStruct(789, 3.14),
-    Baz = new byte[] { 1, 2, 3 },
-    Qux = "Hello, World!"
+    //Primitive = 123,
+    //Unmanaged = new Foobar(123, 789),
+    //Bytes = Enumerable.Range(1, 128).Select(_ => byte.MaxValue).ToArray(),
+    //String = "abc",
+    //BufferedObject = new Foobarbaz(new Foobar(111, 222), "xyz"),
+
+    PrimitiveList = new int[] { 1, 2, 3 },
+    UnmanagedList = new Foobar[] { new Foobar(1, 2), new Foobar(3, 4) },
+    StringList = new string[] { "a", "b", "c" },
+    BufferedObjectList = new Foobarbaz[] { new Foobarbaz(new Foobar(1, 2), "a"), new Foobarbaz(new Foobar(3, 4), "b") }
 };
 
-var byteCount = entity.CalculateSize();
-var context = BufferedObjectWriteContext.CreateForSizeCalculation();
-entity.Write(context);
-var size = context.Position;
-Console.WriteLine(byteCount);
-Console.WriteLine(size);
+using (var pooledMessage = entity.AsBufferedMessage<EntityBufferedMessage>())
+{
+    var bufferedMessage = pooledMessage.BufferedMessage;
+    Debug.Assert(bufferedMessage.PrimitiveList.Count == 3);
+    Debug.Assert(bufferedMessage.PrimitiveList[0] == 1);
+    Debug.Assert(bufferedMessage.PrimitiveList[1] == 2);
+    Debug.Assert(bufferedMessage.PrimitiveList[2] == 3);
 
+    Debug.Assert(bufferedMessage.UnmanagedList.Count == 2);
+    Debug.Assert(bufferedMessage.UnmanagedList[0].Foo == 1);
+    Debug.Assert(bufferedMessage.UnmanagedList[0].Bar == 2);
+    Debug.Assert(bufferedMessage.UnmanagedList[1].Foo == 3);
+    Debug.Assert(bufferedMessage.UnmanagedList[1].Bar == 4);
 
-//var bytes = new byte[byteCount + 4];
-//var context = new BufferedObjectWriteContext(bytes);
-//entity.Write(context);
-//File.WriteAllBytes(".data", bytes);
+    Debug.Assert(bufferedMessage.StringList.Count == 3);
+    Debug.Assert(bufferedMessage.StringList[0] == "a");
+    Debug.Assert(bufferedMessage.StringList[1] == "b");
+    Debug.Assert(bufferedMessage.StringList[2] == "c");
 
-//EntityBufferedMessage bufferedMessage;
-//BufferOwner? bufferOwner = null;
-
-//try
-//{
-//    using (var fs = new FileStream(".data", FileMode.Open))
-//    {
-//        byteCount = (int)fs.Length;
-//        bufferOwner = BufferPool.Rent(byteCount);
-//        fs.Read(bufferOwner.Bytes, 0, byteCount);
-//    }
-
-//    bufferedMessage = BufferedMessage.Create<EntityBufferedMessage>(ref bufferOwner);
-//    Debug.Assert(bufferedMessage.Foo == 123);
-//    Debug.Assert(bufferedMessage.Bar.X == 789);
-//    Debug.Assert(bufferedMessage.Bar.Y == 3.14);
-//    Debug.Assert(bufferedMessage.Baz.Length == 3);
-
-//    var byteSpan = bufferedMessage.Baz.AsSpan();
-//    Debug.Assert(byteSpan[0] == 1);
-//    Debug.Assert(byteSpan[1] == 2);
-//    Debug.Assert(byteSpan[2] == 3);
-
-//    Debug.Assert(bufferedMessage.Qux == "Hello, World!");
-//}
-//finally
-//{
-//    bufferOwner?.Dispose();
-//}
-
+    Debug.Assert(bufferedMessage.BufferedObjectList.Count == 2);
+    Debug.Assert(bufferedMessage.BufferedObjectList[0]!.Value.Foobar.Foo == 1);
+    Debug.Assert(bufferedMessage.BufferedObjectList[0]!.Value.Foobar.Bar == 2);
+    Debug.Assert(bufferedMessage.BufferedObjectList[0]!.Value.Baz == "a");
+    Debug.Assert(bufferedMessage.BufferedObjectList[1]!.Value.Foobar.Foo == 3);
+    Debug.Assert(bufferedMessage.BufferedObjectList[1]!.Value.Foobar.Bar == 4);
+    Debug.Assert(bufferedMessage.BufferedObjectList[1]!.Value.Baz == "b");
+}
