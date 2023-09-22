@@ -31,6 +31,14 @@ namespace NativeBuffering.Generator
                 var propertyType = property.Type;
 
                 #region Scalar
+
+                if (propertyType.IsBufferedMessageSource(out var bufferedMessageTypeName))
+                {
+                    bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.Message);
+                    properties.Add(bufferedObjectProperty);
+                    continue;
+                }
+
                 if (propertyType.IsPrimitive())
                 {
                     bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.Primitive);
@@ -38,19 +46,12 @@ namespace NativeBuffering.Generator
                     continue;
                 }
 
-                if(propertyType.IsUnmanagedType)
+                if (propertyType.IsUnmanagedType)
                 {
                     bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.Unmanaged);
                     properties.Add(bufferedObjectProperty);
                     continue;
-                }
-
-                if (propertyType.IsBufferedMessageSource(out var bufferedMessageTypeName))
-                {
-                    bufferedObjectProperty = new BufferedObjectProperty(property,  BufferedMessageMemberKind.Message);
-                    properties.Add(bufferedObjectProperty);
-                    continue;
-                }
+                }               
 
                 if (propertyType.IsString())
                 {
@@ -59,7 +60,7 @@ namespace NativeBuffering.Generator
                     continue;
                 }
 
-                if(propertyType.IsBinary())
+                if (propertyType.IsBinary())
                 {
                     bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.Binary);
                     properties.Add(bufferedObjectProperty);
@@ -72,8 +73,18 @@ namespace NativeBuffering.Generator
                 {
                     #region Unmanaged Dictionary
                     if (keyTypeSymbol!.IsUnmanagedType)
-                    { 
-                        if(valueTypeSymbol!.IsUnmanagedType)
+                    {
+                        if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
+                        {
+                            bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.UnmanagedMessageDictionary);
+                            bufferedObjectProperty.KeyType = keyTypeSymbol;
+                            bufferedObjectProperty.ValueType = valueTypeSymbol;
+                            bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
+                            properties.Add(bufferedObjectProperty);
+                            continue;
+                        }
+
+                        if (valueTypeSymbol!.IsUnmanagedType)
                         {
                             bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.UnmanagedUnmanagedDictionary);
                             bufferedObjectProperty.KeyType = keyTypeSymbol;
@@ -89,17 +100,7 @@ namespace NativeBuffering.Generator
                             bufferedObjectProperty.ValueType = valueTypeSymbol;
                             properties.Add(bufferedObjectProperty);
                             continue;
-                        }
-
-                        if (valueTypeSymbol.IsBufferedMessageSource(out bufferedMessageTypeName))
-                        {
-                            bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.UnmanagedMessageDictionary);
-                            bufferedObjectProperty.KeyType = keyTypeSymbol;
-                            bufferedObjectProperty.ValueType = valueTypeSymbol;
-                            bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
-                            properties.Add(bufferedObjectProperty);
-                            continue;
-                        }
+                        }                     
 
                         if (valueTypeSymbol.IsBinary())
                         {
@@ -116,7 +117,17 @@ namespace NativeBuffering.Generator
 
                     #region String Dictionary
                     if (keyTypeSymbol.IsString())
-                    { 
+                    {
+                        if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
+                        {
+                            bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.StringMessageDictionary);
+                            bufferedObjectProperty.KeyType = keyTypeSymbol;
+                            bufferedObjectProperty.ValueType = valueTypeSymbol;
+                            bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
+                            properties.Add(bufferedObjectProperty);
+                            continue;
+                        }
+
                         if (valueTypeSymbol!.IsUnmanagedType)
                         {
                             bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.StringUnmanagedDictionary);
@@ -133,17 +144,7 @@ namespace NativeBuffering.Generator
                             bufferedObjectProperty.ValueType = valueTypeSymbol;
                             properties.Add(bufferedObjectProperty);
                             continue;
-                        }
-
-                        if (valueTypeSymbol.IsBufferedMessageSource(out bufferedMessageTypeName))
-                        {
-                            bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.StringMessageDictionary);
-                            bufferedObjectProperty.KeyType = keyTypeSymbol;
-                            bufferedObjectProperty.ValueType = valueTypeSymbol;
-                            bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
-                            properties.Add(bufferedObjectProperty);
-                            continue;
-                        }
+                        }                        
 
                         if (valueTypeSymbol.IsBinary())
                         {
@@ -165,6 +166,15 @@ namespace NativeBuffering.Generator
                 #region Collection
                 if(propertyType.IsCollection(out var elementTypeSymbol))
                 {
+                    if (elementTypeSymbol.IsBufferedMessageSource(out bufferedMessageTypeName))
+                    {
+                        bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.MessageCollection);
+                        bufferedObjectProperty.ElementType = elementTypeSymbol;
+                        bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
+                        properties.Add(bufferedObjectProperty);
+                        continue;
+                    }
+
                     if (elementTypeSymbol!.IsUnmanagedType)
                     {
                         bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.UnmanagedCollection);
@@ -179,16 +189,7 @@ namespace NativeBuffering.Generator
                         bufferedObjectProperty.ElementType = elementTypeSymbol;
                         properties.Add(bufferedObjectProperty);
                         continue;
-                    }
-
-                    if (elementTypeSymbol.IsBufferedMessageSource(out bufferedMessageTypeName))
-                    {
-                        bufferedObjectProperty = new BufferedObjectProperty(property, BufferedMessageMemberKind.MessageCollection);
-                        bufferedObjectProperty.ElementType = elementTypeSymbol;
-                        bufferedObjectProperty.BufferedMessageTypeName = bufferedMessageTypeName;
-                        properties.Add(bufferedObjectProperty);
-                        continue;
-                    }
+                    }                  
 
                     if (elementTypeSymbol.IsBinary())
                     {
@@ -200,7 +201,7 @@ namespace NativeBuffering.Generator
 
                     throw new BufferedObjectMetadataException($"Unsupported collection element type {elementTypeSymbol.Name} for property {property.Name}.");
                 }
-                #endregion
+                #endregion          
 
                 throw new BufferedObjectMetadataException($"Unsupported property type {propertyType.Name} for property {property.Name}.");
             }

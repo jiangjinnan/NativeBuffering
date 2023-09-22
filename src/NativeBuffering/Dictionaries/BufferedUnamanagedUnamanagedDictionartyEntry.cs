@@ -30,7 +30,7 @@ namespace NativeBuffering.Dictionaries
         public Enumerator GetEnumerator() => new(this);
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()=> GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        public bool TryGetKV(TKey key, out UnmanagedUnmanagedPair<TKey, TValue> kvPair)
+        public bool TryGetKV(TKey key, out UnmanagedNonNullableUnmanagedPair<TKey, TValue> kvPair)
         {
             if (Count == 0)
             {
@@ -40,7 +40,7 @@ namespace NativeBuffering.Dictionaries
             for (int index = 0; index < Count; index++)
             {
                 var offset = IntPtr.Size + sizeof(UnmanangedKV<TKey, TValue>) * index;
-                var kv = UnmanagedUnmanagedPair<TKey, TValue>.Parse(Buffer.CreateByOffset(offset));
+                var kv = UnmanagedNonNullableUnmanagedPair<TKey, TValue>.Parse(Buffer.CreateByOffset(offset));
                 if (kv.Key.Equals(key))
                 {
                     kvPair = kv;
@@ -68,7 +68,7 @@ namespace NativeBuffering.Dictionaries
                 get
                 {
                     var offset = IntPtr.Size + sizeof(UnmanangedKV<TKey, TValue>) * _index;
-                    var kv = UnmanagedUnmanagedPair<TKey, TValue>.Parse(_entry.Buffer.CreateByOffset(offset));
+                    var kv = UnmanagedNonNullableUnmanagedPair<TKey, TValue>.Parse(_entry.Buffer.CreateByOffset(offset));
                     return new KeyValuePair<TKey, TValue>(kv.Key, kv.Value);
                 }
             }

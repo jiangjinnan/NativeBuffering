@@ -40,6 +40,7 @@ namespace NativeBuffering
         }
         #endregion
 
+        #region Collection
         public static ReadOnlyNonNullableUnmanagedList<T> ReadNonNullableUnmanagedCollectionField<T>(this NativeBuffer buffer, int index) where T : unmanaged
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
@@ -63,35 +64,65 @@ namespace NativeBuffering
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
             return position == -1 ? ReadOnlyNullableBufferedObjectList<T>.DefaultValue : new ReadOnlyNullableBufferedObjectList<T>(buffer.CreateByIndex(position));
         }
+        #endregion
 
-        public static ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue> ReadUnmanagedUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
+        public static ReadOnlyUnmanagedNonNullableUnmanagedDictionary<TKey, TValue> ReadUnmanagedNonNullableUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyUnmanagedUnmanagedDictionary<TKey, TValue>(buffer.CreateByIndex(position));
+            return new ReadOnlyUnmanagedNonNullableUnmanagedDictionary<TKey, TValue>(buffer.CreateByIndex(position));
         }
 
-        public static ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue> ReadUnmanagedBufferedObjectDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
+        public static ReadOnlyUnmanagedNullableUnmanagedDictionary<TKey, TValue> ReadUnmanagedNullableUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
             where TKey : unmanaged, IEquatable<TKey>
-            where TValue : IReadOnlyBufferedObject<TValue>
-        {
-            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyUnmanagedBufferedObjectDictionary<TKey, TValue>(buffer.CreateByIndex(position));
-        }
-
-        public static ReadOnlyStringUnmanagedDictionary<TValue> ReadStringUnmanagedDictionaryField<TValue>(this NativeBuffer buffer, int index)
             where TValue : unmanaged
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyStringUnmanagedDictionary<TValue>(buffer.CreateByIndex(position));
+            return new ReadOnlyUnmanagedNullableUnmanagedDictionary<TKey, TValue>(buffer.CreateByIndex(position));
         }
 
-        public static ReadOnlyStringBufferedObjectDictionary<TValue> ReadStringBufferedObjectDictionaryField<TValue>(this NativeBuffer buffer, int index)
-            where TValue : IReadOnlyBufferedObject<TValue>
+        public static ReadOnlyUnmanagedNonNullableBufferedObjectDictionary<TKey, TValue> ReadUnmanagedNonNullableBufferedObjectDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue :struct, IReadOnlyBufferedObject<TValue>
         {
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
-            return new ReadOnlyStringBufferedObjectDictionary<TValue>(buffer.CreateByIndex(position));
+            return new ReadOnlyUnmanagedNonNullableBufferedObjectDictionary<TKey, TValue>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyUnmanagedNullableBufferedObjectDictionary<TKey, TValue> ReadUnmanagedNullableBufferedObjectDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : struct, IReadOnlyBufferedObject<TValue>
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyUnmanagedNullableBufferedObjectDictionary<TKey, TValue>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyStringNonNullableUnmanagedDictionary<TValue> ReadStringNonNullableUnmanagedDictionaryField<TValue>(this NativeBuffer buffer, int index)
+            where TValue : unmanaged
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyStringNonNullableUnmanagedDictionary<TValue>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyStringNullableUnmanagedDictionary<TValue> ReadStringNullableUnmanagedDictionaryField<TValue>(this NativeBuffer buffer, int index)
+           where TValue : unmanaged
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyStringNullableUnmanagedDictionary<TValue>(buffer.CreateByIndex(position));
+        }
+
+        public static ReadOnlyStringNonNullableBufferedObjectDictionary<TValue> ReadStringNonNullableBufferedObjectDictionaryField<TValue>(this NativeBuffer buffer, int index)
+            where TValue : struct, IReadOnlyBufferedObject<TValue>
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyStringNonNullableBufferedObjectDictionary<TValue>(buffer.CreateByIndex(position));
+        }
+        public static ReadOnlyStringNullableBufferedObjectDictionary<TValue> ReadStringNullableBufferedObjectDictionaryField<TValue>(this NativeBuffer buffer, int index)
+           where TValue : struct, IReadOnlyBufferedObject<TValue>
+        {
+            var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
+            return new ReadOnlyStringNullableBufferedObjectDictionary<TValue>(buffer.CreateByIndex(position));
         }
     }
 }

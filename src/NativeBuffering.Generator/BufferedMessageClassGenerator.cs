@@ -9,7 +9,7 @@ namespace NativeBuffering.Generator
         public void Generate(BufferedObjectMetadata metadata, CodeGenerationContext context)
         {
             context.WriteLines($"public unsafe readonly struct {metadata.BufferedMessageClassName} : IReadOnlyBufferedObject<{metadata.BufferedMessageClassName}>");
-           
+
             using (context.CodeBlock())
             {
                 context.WriteLines($"public static {metadata.BufferedMessageClassName} DefaultValue => throw new NotImplementedException();");
@@ -18,8 +18,8 @@ namespace NativeBuffering.Generator
                 context.WriteLines($"public {metadata.BufferedMessageClassName}(NativeBuffer buffer) => Buffer = buffer;");
                 context.WriteLines($"public static {metadata.BufferedMessageClassName} Parse(NativeBuffer buffer) => new {metadata.BufferedMessageClassName}(buffer);");
 
-                var properties = metadata.Properties;   
-                for(var index = 0; index< properties.Length; index++) 
+                var properties = metadata.Properties;
+                for (var index = 0; index < properties.Length; index++)
                 {
                     var property = properties[index];
                     var propertyType = property.PropertySymbol.Type;
@@ -28,7 +28,7 @@ namespace NativeBuffering.Generator
 
                     #region Dictionary
                     if (propertyType.IsDictionary(out var keyTypeSymbol, out var valueTypeSymbol))
-                    { 
+                    {
                         var keyFullTypeName = keyTypeSymbol!.GetFullName();
                         var valueFullTypeName = valueTypeSymbol!.GetFullName();
                         if (valueTypeSymbol!.IsString())
@@ -39,30 +39,72 @@ namespace NativeBuffering.Generator
                         {
                             valueFullTypeName = "BufferedBinary";
                         }
-                        if(valueTypeSymbol!.IsBufferedMessageSource(out  bufferedMessageTypeName))
-                        {
-                            valueFullTypeName = bufferedMessageTypeName;
-                        }
+                        //if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
+                        //{
+                        //    valueFullTypeName = bufferedMessageTypeName;
+                        //}
 
+                        // Key = Unmannaged
                         if (keyTypeSymbol!.IsUnmanagedType)
                         {
-                            if (valueTypeSymbol!.IsUnmanagedType)
+                            if(valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
                             {
-                                context.WriteLines($"public ReadOnlyUnmanagedUnmanagedDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedUnmanagedDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
+                                if (valueTypeSymbol!.IsNullable(out _))
+                                {
+                                    context.WriteLines($"public ReadOnlyUnmanagedNullableBufferedObjectDictionary<{keyTypeSymbol.GetFullName()}, {bufferedMessageTypeName}> {propertyName} => Buffer.ReadUnmanagedNullableBufferedObjectDictionaryField<{keyTypeSymbol.GetFullName()}, {bufferedMessageTypeName}>({index});");
+                                }
+                                else
+                                {
+                                    context.WriteLines($"public ReadOnlyUnmanagedNonNullableBufferedObjectDictionary<{keyTypeSymbol.GetFullName()}, {bufferedMessageTypeName}> {propertyName} => Buffer.ReadUnmanagedNonNullableBufferedObjectDictionaryField<{keyTypeSymbol.GetFullName()}, {bufferedMessageTypeName}>({index});");
+                                }
                                 continue;
                             }
 
-                            context.WriteLines($"public ReadOnlyUnmanagedBufferedObjectDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedBufferedObjectDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
-                            continue;
-                        }
+                            if (valueTypeSymbol!.IsString() || valueTypeSymbol!.IsBinary())
+                            {
+                                context.WriteLines($"public ReadOnlyUnmanagedNonNullableBufferedObjectDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedNonNullableBufferedObjectDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
+                                continue;
+                            }
 
-                        if (valueTypeSymbol!.IsUnmanagedType)
+                            if (valueTypeSymbol!.IsNullable(out _))
+                            {
+                                context.WriteLines($"public ReadOnlyUnmanagedNullableUnmanagedDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedNullableUnmanagedDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
+                                continue;
+                            }
+
+                            context.WriteLines($"public ReadOnlyUnmanagedNonNullableUnmanagedDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedNonNullableUnmanagedDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
+
+                        }
+                        // Key = String
+                        else
                         {
-                            context.WriteLines($"public ReadOnlyStringUnmanagedDictionary<{valueFullTypeName}> {propertyName} => Buffer.ReadStringUnmanagedDictionaryField<{valueFullTypeName}>({index});");
-                            continue;
-                        }
+                            if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
+                            {
+                                if (valueTypeSymbol!.IsNullable(out _))
+                                {
+                                    context.WriteLines($"public ReadOnlyStringNullableBufferedObjectDictionary< {bufferedMessageTypeName}> {propertyName} => Buffer.ReadStringNullableBufferedObjectDictionaryField<{bufferedMessageTypeName}>({index});");
+                                }
+                                else
+                                {
+                                    context.WriteLines($"public ReadOnlyStringNonNullableBufferedObjectDictionary< {bufferedMessageTypeName}> {propertyName} => Buffer.ReadStringNonNullableBufferedObjectDictionaryField<{bufferedMessageTypeName}>({index});");
+                                }
+                                continue;
+                            }
 
-                        context.WriteLines($"public ReadOnlyStringBufferedObjectDictionary<{valueFullTypeName}> {propertyName} => Buffer.ReadStringBufferedObjectDictionaryField<{valueFullTypeName}>({index});");
+                            if (valueTypeSymbol!.IsString() || valueTypeSymbol!.IsBinary())
+                            {
+                                context.WriteLines($"public ReadOnlyStringNonNullableBufferedObjectDictionary< {valueFullTypeName}> {propertyName} => Buffer.ReadStringNonNullableBufferedObjectDictionaryField<{valueFullTypeName}>({index});");
+                                continue;
+                            }
+
+                            if (valueTypeSymbol!.IsNullable(out _))
+                            {
+                                context.WriteLines($"public ReadOnlyStringNullableUnmanagedDictionary<{valueFullTypeName}> {propertyName} => Buffer.ReadStringNullableUnmanagedDictionaryField<{valueFullTypeName}>({index});");
+                                continue;
+                            }
+
+                            context.WriteLines($"public ReadOnlyStringNonNullableUnmanagedDictionary<{valueFullTypeName}> {propertyName} => Buffer.ReadStringNonNullableUnmanagedDictionaryField<{valueFullTypeName}>({index});");
+                        }
                         continue;
                     }
                     #endregion
@@ -70,16 +112,30 @@ namespace NativeBuffering.Generator
                     #region Collection
                     if (propertyType.IsCollection(out var elementTypeSymbol))
                     {
-                        var elementFullTypeName = elementTypeSymbol!.GetFullName();
                         if (elementTypeSymbol!.IsString())
                         {
-                            elementFullTypeName = "BufferedString";
-                            context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<{elementFullTypeName}> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<BufferedString>({index});");
+                            context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<BufferedString> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<BufferedString>({index});");
                             continue;
                         }
                         if (elementTypeSymbol!.IsBinary())
                         {
-                            elementFullTypeName = "BufferedBinary";
+                            context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<BufferedBinary> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<BufferedBinary>({index});");
+                            continue;
+                        }
+
+                        var elementFullTypeName = elementTypeSymbol!.GetFullName();
+
+                        if (elementTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
+                        {
+                            if (elementTypeSymbol!.IsNullable(out _) || !elementTypeSymbol.IsValueType)
+                            {
+                                context.WriteLines($"public ReadOnlyNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
+                            }
+                            else
+                            {
+                                context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
+                            }
+                            continue;
                         }
 
                         if (elementTypeSymbol!.IsUnmanagedType)
@@ -91,19 +147,6 @@ namespace NativeBuffering.Generator
                             else
                             {
                                 context.WriteLines($"public ReadOnlyNonNullableUnmanagedList<{elementFullTypeName}> {propertyName} => Buffer.ReadNonNullableUnmanagedCollectionField<{elementFullTypeName}>({index});");
-                            }
-                            continue;
-                        }
-
-                        if(elementTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
-                        {
-                            if (elementTypeSymbol.IsNullable(out _) || !elementTypeSymbol.IsValueType)
-                            {
-                                context.WriteLines($"public ReadOnlyNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
-                            }
-                            else
-                            {
-                                context.WriteLines($"public ReadOnlyNonNullableBufferedObjectList<{bufferedMessageTypeName}> {propertyName} => Buffer.ReadNonNullableBufferedObjectCollectionField<{bufferedMessageTypeName}>({index});");
                             }
                             continue;
                         }
@@ -142,19 +185,19 @@ namespace NativeBuffering.Generator
                         }
                     }
 
-                    if(propertyType.IsString())
+                    if (propertyType.IsString())
                     {
                         context.WriteLines($"public BufferedString {propertyName} => Buffer.ReadNonNullableBufferedObjectField<BufferedString>({index});");
                         continue;
                     }
 
-                    if(propertyType.IsBinary())
+                    if (propertyType.IsBinary())
                     {
                         context.WriteLines($"public BufferedBinary {propertyName} => Buffer.ReadNonNullableBufferedObjectField<BufferedBinary>({index});");
                         continue;
                     }
 
-                    if(propertyType.IsBufferedMessageSource(out bufferedMessageTypeName))
+                    if (propertyType.IsBufferedMessageSource(out bufferedMessageTypeName))
                     {
                         if (property.IsNullable || !propertyType.IsValueType)
                         {
@@ -170,7 +213,7 @@ namespace NativeBuffering.Generator
                 }
             }
 
-            
+
         }
     }
 }

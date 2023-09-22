@@ -5,7 +5,7 @@ namespace NativeBuffering
 {
     public static unsafe class BufferedMessageWriteContextDictionaryExtensions
     {
-        public static void WriteUnmanagedUnmanagedDictionary<TKey, TValue>(this BufferedObjectWriteContext context, IDictionary<TKey, TValue> dictionary)
+        public static void WriteUnmanagedNonNullableUnmanagedDictionary<TKey, TValue>(this BufferedObjectWriteContext context, IDictionary<TKey, TValue> dictionary)
             where TKey : unmanaged, IComparable<TKey>
             where TValue : unmanaged
         {
@@ -44,42 +44,53 @@ namespace NativeBuffering
                 }
             }
         }
-
+        public static void WriteUnmanagedNullableUnmanagedDictionary<TKey, TValue>(this BufferedObjectWriteContext context, IDictionary<TKey, TValue?> dictionary)
+           where TKey : unmanaged, IComparable<TKey>
+           where TValue : unmanaged
+           => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteUnmanaged(value!.Value), AlignmentCalculator.AlignmentOf<TKey>(), AlignmentCalculator.AlignmentOf<TValue>(), value => value is null);
+        
         public static void WriteUnmanagedStringDictionary<TKey>(this BufferedObjectWriteContext context, IDictionary<TKey, string> dictionary) where TKey : unmanaged, IComparable<TKey>
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteString(value), IntPtr.Size);
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteString(value), AlignmentCalculator.AlignmentOf<TKey>(), IntPtr.Size, string.IsNullOrEmpty);
 
         public static void WriteUnmanagedBinaryDictionary<TKey>(this BufferedObjectWriteContext context, IDictionary<TKey, byte[]> dictionary) where TKey : unmanaged, IComparable<TKey>
-           => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteBytes(value), IntPtr.Size);
+           => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteBytes(value), AlignmentCalculator.AlignmentOf<TKey>(), IntPtr.Size, value => value is null || value.Length == 0);
 
         public static void WriteUnmanagedBinaryDictionary<TKey>(this BufferedObjectWriteContext context, IDictionary<TKey, Memory<byte>> dictionary) where TKey : unmanaged, IComparable<TKey>
-          => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteBytes(value.Span), IntPtr.Size);
+          => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => ctx.WriteBytes(value.Span), AlignmentCalculator.AlignmentOf<TKey>(), IntPtr.Size, value => value.Length == 0);
 
         public static void WriteUnmanagedBufferedObjectDictionary<TKey, TValue>(this BufferedObjectWriteContext context, IDictionary<TKey, TValue> dictionary)
             where TKey : unmanaged, IComparable<TKey>
             where TValue : IBufferedObjectSource
-        => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => value.Write(ctx),  IntPtr.Size);
+        => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteUnmanaged(key), (ctx, value) => value.Write(ctx), AlignmentCalculator.AlignmentOf<TKey>(), IntPtr.Size, value => value is null);
 
-        public static void WriteStringUnmanagedDictionary<TValue>(this BufferedObjectWriteContext context, IDictionary<string, TValue> dictionary)
+        public static void WriteStringNonNullableUnmanagedDictionary<TValue>(this BufferedObjectWriteContext context, IDictionary<string, TValue> dictionary)
             where TValue : unmanaged
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteUnmanaged(value), AlignmentCalculator.AlignmentOf<TValue>());
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteUnmanaged(value), IntPtr.Size, AlignmentCalculator.AlignmentOf<TValue>(), _ => false);
+
+        public static void WriteStringNullableUnmanagedDictionary<TValue>(this BufferedObjectWriteContext context, IDictionary<string, TValue?> dictionary)
+            where TValue : unmanaged
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteUnmanaged(value!.Value), IntPtr.Size, AlignmentCalculator.AlignmentOf<TValue>(), value => value is null);
+
         public static void WriteStringStringDictionary(this BufferedObjectWriteContext context, IDictionary<string, string> dictionary)
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteString(value), IntPtr.Size);
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteString(value), IntPtr.Size, IntPtr.Size, value => string.IsNullOrEmpty(value));
 
         public static void WriteStringBinaryDictionary(this BufferedObjectWriteContext context, IDictionary<string, byte[]> dictionary)
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteBytes(value),  IntPtr.Size);
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteBytes(value), IntPtr.Size, IntPtr.Size, value => value is null || value.Length == 0);
         public static void WriteStringBinaryDictionary(this BufferedObjectWriteContext context, IDictionary<string, Memory<byte>> dictionary)
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteBytes(value.Span), IntPtr.Size);
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => ctx.WriteBytes(value.Span), IntPtr.Size, IntPtr.Size, value => value.Length == 0);
 
         public static void WriteStringBufferedObjectDictionary<TValue>(this BufferedObjectWriteContext context, IDictionary<string, TValue> dictionary)
             where TValue : IBufferedObjectSource
-            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => value.Write(ctx),  IntPtr.Size);
+            => WriteVariableLengthDictionary(context, dictionary, (ctx, key) => ctx.WriteString(key), (ctx, value) => value.Write(ctx), IntPtr.Size, IntPtr.Size, value => value is null);
 
         public static void WriteVariableLengthDictionary<TKey, TValue>(
             this BufferedObjectWriteContext context,
             IDictionary<TKey, TValue> dictionary,
             Action<BufferedObjectWriteContext, TKey> keyWriter,
             Action<BufferedObjectWriteContext, TValue> valueWriter,
-            int valueAlignment)
+            int keyAligiment,
+            int valueAlignment,
+            Func<TValue, bool> defaultValueEvaluator)
         {
             context.EnsureAlignment(IntPtr.Size);
 
@@ -100,7 +111,7 @@ namespace NativeBuffering
                 {
                     context.AddPaddingBytes(IntPtr.Size); // align to pointer size
                     context.WriteReference(indexStart, index, false);
-                    context.WriteKVs(kvs, keyWriter, valueWriter, valueAlignment);
+                    context.WriteKVs(kvs, keyWriter, valueWriter, keyAligiment, valueAlignment, defaultValueEvaluator);
                 }
                 else
                 {
@@ -116,7 +127,9 @@ namespace NativeBuffering
         private static void WriteKVs<TKey, TValue>(this BufferedObjectWriteContext context, IEnumerable<KeyValuePair<TKey, TValue>> kvs,
             Action<BufferedObjectWriteContext, TKey> keyWriter,
             Action<BufferedObjectWriteContext, TValue> valueWriter,
-            int valueAlignment)
+            int keyAligiment,
+            int valueAlignment,
+            Func<TValue, bool> defaultValueEvaluator)
         {
             var count = kvs.Count();
             context.WriteUnmanaged(count);
@@ -126,13 +139,20 @@ namespace NativeBuffering
             var index = 0;
             foreach (var item in kvs)
             {
-                context.AddPaddingBytes(IntPtr.Size); 
-
+                var isDefaultValue = defaultValueEvaluator(item.Value);
+                context.AddPaddingBytes(IntPtr.Size);
                 context.WriteReference(indexStart, index++, false);
+                context.WriteUnmanaged((byte)(isDefaultValue ? 0 : 1));
+
+                context.AddPaddingBytes(keyAligiment);
                 keyWriter(context, item.Key);
-                context.AddPaddingBytes(valueAlignment);
-                valueWriter(context, item.Value);
+
+                if (!isDefaultValue)
+                {
+                    context.AddPaddingBytes(valueAlignment);
+                    valueWriter(context, item.Value);
+                }
             }
-        }        
+        }
     }
 }
