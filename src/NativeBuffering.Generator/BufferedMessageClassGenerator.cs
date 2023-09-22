@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NativeBuffering.Generator
+﻿namespace NativeBuffering.Generator
 {
     internal class BufferedMessageClassGenerator
     {
@@ -39,12 +35,7 @@ namespace NativeBuffering.Generator
                         {
                             valueFullTypeName = "BufferedBinary";
                         }
-                        //if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
-                        //{
-                        //    valueFullTypeName = bufferedMessageTypeName;
-                        //}
 
-                        // Key = Unmannaged
                         if (keyTypeSymbol!.IsUnmanagedType)
                         {
                             if(valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
@@ -66,9 +57,9 @@ namespace NativeBuffering.Generator
                                 continue;
                             }
 
-                            if (valueTypeSymbol!.IsNullable(out _))
+                            if (valueTypeSymbol!.IsNullable(out var underlyingTypeSymbol))
                             {
-                                context.WriteLines($"public ReadOnlyUnmanagedNullableUnmanagedDictionary<{keyFullTypeName}, {valueFullTypeName}> {propertyName} => Buffer.ReadUnmanagedNullableUnmanagedDictionaryField<{keyFullTypeName}, {valueFullTypeName}>({index});");
+                                context.WriteLines($"public ReadOnlyUnmanagedNullableUnmanagedDictionary<{keyFullTypeName}, {underlyingTypeSymbol!.GetFullName()}> {propertyName} => Buffer.ReadUnmanagedNullableUnmanagedDictionaryField<{keyFullTypeName}, {underlyingTypeSymbol!.GetFullName()}>({index});");
                                 continue;
                             }
 
@@ -80,7 +71,7 @@ namespace NativeBuffering.Generator
                         {
                             if (valueTypeSymbol!.IsBufferedMessageSource(out bufferedMessageTypeName))
                             {
-                                if (valueTypeSymbol!.IsNullable(out _))
+                                if (valueTypeSymbol!.IsNullable(out _) || !valueTypeSymbol!.IsValueType)
                                 {
                                     context.WriteLines($"public ReadOnlyStringNullableBufferedObjectDictionary< {bufferedMessageTypeName}> {propertyName} => Buffer.ReadStringNullableBufferedObjectDictionaryField<{bufferedMessageTypeName}>({index});");
                                 }
@@ -97,9 +88,9 @@ namespace NativeBuffering.Generator
                                 continue;
                             }
 
-                            if (valueTypeSymbol!.IsNullable(out _))
+                            if (valueTypeSymbol!.IsNullable(out var underlyingTypeSymbol))
                             {
-                                context.WriteLines($"public ReadOnlyStringNullableUnmanagedDictionary<{valueFullTypeName}> {propertyName} => Buffer.ReadStringNullableUnmanagedDictionaryField<{valueFullTypeName}>({index});");
+                                context.WriteLines($"public ReadOnlyStringNullableUnmanagedDictionary<{underlyingTypeSymbol!.GetFullName()}> {propertyName} => Buffer.ReadStringNullableUnmanagedDictionaryField<{underlyingTypeSymbol!.GetFullName()}>({index});");
                                 continue;
                             }
 

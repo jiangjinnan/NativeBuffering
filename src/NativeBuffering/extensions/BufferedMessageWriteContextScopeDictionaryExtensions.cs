@@ -7,6 +7,11 @@
            where TValue : unmanaged
         => scope.WriteField(dictionary, (c, v) => c.WriteUnmanagedNonNullableUnmanagedDictionary(v), IntPtr.Size);
 
+        public static void WriteUnmanagedNullableUnmanagedDictionaryField<TKey, TValue>(this BufferedObjectWriteContextScope scope, IDictionary<TKey, TValue?> dictionary)
+           where TKey : unmanaged, IComparable<TKey>
+           where TValue : unmanaged
+        => scope.WriteField(dictionary, (c, v) => c.WriteUnmanagedNullableUnmanagedDictionary(v), IntPtr.Size);
+
         public static void WriteUnmanagedStringDictionaryField<TKey>(this BufferedObjectWriteContextScope scope, IDictionary<TKey, string> dictionary)
            where TKey : unmanaged, IComparable<TKey>
         => scope.WriteField(dictionary, (c, v) => c.WriteUnmanagedStringDictionary(v), IntPtr.Size);
@@ -27,6 +32,10 @@
         public static void WriteStringNonNullableUnmanagedDictionaryField<TValue>(this BufferedObjectWriteContextScope scope, IDictionary<string, TValue> dictionary)
           where TValue : unmanaged
        => scope.WriteField(dictionary, (c, v) => c.WriteStringNonNullableUnmanagedDictionary(v), IntPtr.Size);
+
+        public static void WriteStringNullableUnmanagedDictionaryField<TValue>(this BufferedObjectWriteContextScope scope, IDictionary<string, TValue?> dictionary)
+         where TValue : unmanaged
+      => scope.WriteField(dictionary, (c, v) => c.WriteStringNullableUnmanagedDictionary(v), IntPtr.Size);
 
         public static void WriteStringStringDictionaryField(this BufferedObjectWriteContextScope scope, IDictionary<string, string> dictionary)
         => scope.WriteField(dictionary, (c, v) => c.WriteStringStringDictionary(v), IntPtr.Size);

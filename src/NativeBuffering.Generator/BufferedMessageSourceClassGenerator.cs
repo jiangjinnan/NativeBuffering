@@ -54,12 +54,16 @@ namespace NativeBuffering.Generator
                         BufferedMessageMemberKind.Binary => context.WriteLines($"scope.WriteBinaryField({propertyName});"),
                         BufferedMessageMemberKind.Message => context.WriteLines($"scope.WriteBufferedObjectField({propertyName});"),
 
-                        BufferedMessageMemberKind.UnmanagedUnmanagedDictionary => context.WriteLines($"scope.WriteUnmanagedNonNullableUnmanagedDictionaryField({propertyName});"),
+                        BufferedMessageMemberKind.UnmanagedUnmanagedDictionary => property.ValueType!.IsNullable(out _)
+                        ? context.WriteLines($"scope.WriteUnmanagedNullableUnmanagedDictionaryField({propertyName});")
+                        : context.WriteLines($"scope.WriteUnmanagedNonNullableUnmanagedDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.UnmanagedMessageDictionary => context.WriteLines($"scope.WriteUnmanagedBufferedObjectDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.UnmanagedStringDictionary => context.WriteLines($"scope.WriteUnmanagedStringDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.UnmanagedBinaryDictionary => context.WriteLines($"scope.WriteUnmanagedBinaryDictionaryField({propertyName});"),
 
-                        BufferedMessageMemberKind.StringUnmanagedDictionary => context.WriteLines($"scope.WriteStringNonNullableUnmanagedDictionaryField({propertyName});"),
+                        BufferedMessageMemberKind.StringUnmanagedDictionary => property.ValueType!.IsNullable(out _)
+                        ? context.WriteLines($"scope.WriteStringNullableUnmanagedDictionaryField({propertyName});")
+                        : context.WriteLines($"scope.WriteStringNonNullableUnmanagedDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.StringStringDictionary => context.WriteLines($"scope.WriteStringStringDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.StringMessageDictionary => context.WriteLines($"scope.WriteStringBufferedObjectDictionaryField({propertyName});"),
                         BufferedMessageMemberKind.StringBinaryDictionary => context.WriteLines($"scope.WriteStringBinaryDictionaryField({propertyName});"),
@@ -70,7 +74,7 @@ namespace NativeBuffering.Generator
                         BufferedMessageMemberKind.BinaryCollection => context.WriteLines($"scope.WriteBinaryCollectionField({propertyName});"),
 
                         _ => throw new NotSupportedException("Will never hit here!")
-                    };
+                    }; ;
                 }               
             }
         }
