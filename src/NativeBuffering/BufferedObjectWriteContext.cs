@@ -1,22 +1,32 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Microsoft.Extensions.ObjectPool;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace NativeBuffering
 {
     public unsafe sealed class BufferedObjectWriteContext
     {
+        private static readonly ObjectPool<BufferedObjectWriteContext> _pool = new DefaultObjectPoolProvider().Create<BufferedObjectWriteContext>(new BufferedObjectWriteContextPooledObjectPolicy());
         private static readonly IntPtr _stringTypeHandle = typeof(string).TypeHandle.Value;
+
+        private byte[] _bytes = null!;
         private int _position = 0;
-        public bool IsSizeCalculateMode { get; } = false;
-        public byte[] Bytes { get; }
+        public bool IsSizeCalculateMode { get; private set; }
+        public byte[] Bytes => _bytes;
+
         public int Position => _position;
         public void* PositionAsPointer => Unsafe.AsPointer(ref Bytes[_position]);
-        public BufferedObjectWriteContext(byte[] buffer, bool isSizeCalculateMode = false)
+        private BufferedObjectWriteContext() { }
+        public BufferedObjectWriteContext Initialize(byte[] buffer, bool isSizeCalculateMode)
         {
-            Bytes = buffer;
+            _bytes = buffer;
             IsSizeCalculateMode = isSizeCalculateMode;
+            _position = 0;
+            return this;
         }
-        public static BufferedObjectWriteContext CreateForSizeCalculation() => new(Array.Empty<byte>(), true);
+
+        public void Release()=> _bytes = null!;
+        //public static BufferedObjectWriteContext CreateForSizeCalculation() => new(Array.Empty<byte>(), true);
         public void Advance(int step) => _position += step;
         public unsafe void WriteUnmanaged<T>(T value) where T : unmanaged
         {
@@ -52,15 +62,18 @@ namespace NativeBuffering
 
             if (!string.IsNullOrEmpty(value))
             {
-                var bytes = Encoding.Unicode.GetBytes(value);
+                var byteCount = Encoding.Unicode.GetByteCount(value);
+                
+                //var bytes = Encoding.Unicode.GetBytes(value,);
                 if (!IsSizeCalculateMode)
                 {
-                    Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
+                    Encoding.Unicode.GetBytes(value, Bytes.AsSpan(_position));
+                    //Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
                 }
 
-                if (IntPtr.Size == 4 || bytes.Length >= 4)
+                if (IntPtr.Size == 4 || byteCount >= 4)
                 {
-                    _position += bytes.Length;
+                    _position += byteCount;
                 }
                 else
                 {
@@ -95,10 +108,22 @@ namespace NativeBuffering
             }
             return _position;
         }
-
         public void EnsureAlignment(int alignment)
         {
            if(_position % alignment != 0) throw new InvalidOperationException($"Position is not aligned to {alignment} bytes");
+        }
+        public static BufferedObjectWriteContext Acquire(byte[] buffer) => _pool.Get().Initialize(buffer, false);
+        public static BufferedObjectWriteContext AcquireForSizeCalculation() => _pool.Get().Initialize(null!, true);
+        public static void Release(BufferedObjectWriteContext writeContext)=> _pool.Return(writeContext);
+        public static BufferedObjectWriteContext Create(byte[] buffer)=> new BufferedObjectWriteContext().Initialize(buffer, false);
+        private sealed class BufferedObjectWriteContextPooledObjectPolicy : PooledObjectPolicy<BufferedObjectWriteContext>
+        {
+            public override BufferedObjectWriteContext Create() => new ();
+            public override bool Return(BufferedObjectWriteContext obj)
+            {
+                obj.Release();
+                return true;
+            }
         }
     }
 }

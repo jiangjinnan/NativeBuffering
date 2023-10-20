@@ -7,7 +7,7 @@
         {
             var source = new Source(new List<byte[]?> { null, new byte[] { 2, 2, 2 }, Array.Empty<byte>()});
             var buffer = new byte[source.CalculateSize()];
-            var context = new BufferedObjectWriteContext(buffer);
+            var context =  BufferedObjectWriteContext.Create(buffer);
             source.Write(context);
             using var pooledMessage = source.AsBufferedMessage<SourceBufferedMessage>();
             var message = pooledMessage.BufferedMessage;

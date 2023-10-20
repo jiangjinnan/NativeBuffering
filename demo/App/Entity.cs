@@ -17,13 +17,13 @@ namespace App
         public Foobar[] BufferedMessageCollection { get; set; } = default!;
 
         public Dictionary<long, Pointer> UnmanagedUnmanagedDictionary { get; set; } = default!;
-        public Dictionary<long, string> UnmanagedStringDictionary { get; set; } = default!;
-        public Dictionary<long, byte[]> UnmanagedBinaryDictionary { get; set; } = default!;
-        public Dictionary<long, Foobar> UnmanagedBufferedMessageDictionary { get; set; } = default!;
+        //public Dictionary<long, string> UnmanagedStringDictionary { get; set; } = default!;
+        //public Dictionary<long, byte[]> UnmanagedBinaryDictionary { get; set; } = default!;
+        //public Dictionary<long, Foobar> UnmanagedBufferedMessageDictionary { get; set; } = default!;
 
-        public Dictionary<string, Pointer> StringUnmanagedDictionary { get; set; } = default!;
-        public Dictionary<string, string> StringStringDictionary { get; set; } = default!;
-        public Dictionary<string, byte[]> StringBinaryDictionary { get; set; } = default!;
-        public Dictionary<string, Foobar> StringBufferedMessageDictionary { get; set; } = default!;
+        //public Dictionary<string, Pointer> StringUnmanagedDictionary { get; set; } = default!;
+        //public Dictionary<string, string> StringStringDictionary { get; set; } = default!;
+        //public Dictionary<string, byte[]> StringBinaryDictionary { get; set; } = default!;
+        //public Dictionary<string, Foobar> StringBufferedMessageDictionary { get; set; } = default!;
     }
 }

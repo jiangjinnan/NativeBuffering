@@ -27,9 +27,12 @@ namespace NativeBuffering.Generator
             context.WriteLines("public int CalculateSize()");
             using (context.CodeBlock())
             {
-                context.WriteLines("var context = BufferedObjectWriteContext.CreateForSizeCalculation();");
+                //context.WriteLines("var context = BufferedObjectWriteContext.CreateForSizeCalculation();");
+                context.WriteLines("var context = BufferedObjectWriteContext.AcquireForSizeCalculation();");
                 context.WriteLines("Write(context);");
-                context.WriteLines("return context.Position;");
+                context.WriteLines("var result = context.Position;");
+                context.WriteLines("BufferedObjectWriteContext.Release(context);");
+                context.WriteLines("return result;");
             }
         }
 
@@ -39,7 +42,9 @@ namespace NativeBuffering.Generator
             context.WriteLines("public void Write(BufferedObjectWriteContext context)");
             using (context.CodeBlock())
             {
-                context.WriteLines("using var scope = new BufferedObjectWriteContextScope(context);");
+                //context.WriteLines("using var scope = new BufferedObjectWriteContextScope(context);");
+                //context.WriteLines($"var scope = new BufferedObjectWriteContextScope(context, {metadata.Properties.Length});");
+                context.WriteLines($"var scope = context.GetWriteContextScope({metadata.Properties.Length});");
                 for (int index = 0; index < properties.Length; index++)
                 {
                     var property = properties[index];
@@ -75,7 +80,8 @@ namespace NativeBuffering.Generator
 
                         _ => throw new NotSupportedException("Will never hit here!")
                     }; ;
-                }               
+                }
+                context.WriteLines("context.ReleaseWriteContextScope(scope);");
             }
         }
 

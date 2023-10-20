@@ -2,11 +2,27 @@
 
 namespace NativeBuffering
 {
-    public unsafe sealed class BufferedObjectWriteContextScope : IDisposable
+    public unsafe sealed class BufferedObjectWriteContextScope //: IDisposable
     {
-        private readonly BufferedObjectWriteContext _context;
-        private readonly Queue<Action<BufferedObjectWriteContext>> _pendingWriteActions = new();
-        public BufferedObjectWriteContextScope(BufferedObjectWriteContext context) => _context = context ?? throw new ArgumentNullException(nameof(context));
+        private BufferedObjectWriteContext _writeContext = default!;
+        private int _fieldSlot;
+        private bool _isSizeCalculateMode;
+        public BufferedObjectWriteContextScope(BufferedObjectWriteContext context, int fieldCount)
+        {
+            _writeContext = context ?? throw new ArgumentNullException(nameof(context));
+            _fieldSlot = _writeContext.Position;
+            _writeContext.Advance(sizeof(int) * fieldCount);
+        }
+
+        public BufferedObjectWriteContextScope() { }
+        public void Initialize(BufferedObjectWriteContext writeContext)
+        {
+            _writeContext = writeContext;
+            _fieldSlot = writeContext.Position;
+            _isSizeCalculateMode = writeContext.IsSizeCalculateMode;
+        }
+        public void Release()=> _writeContext = null!;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteUnmanagedField<T>(T value) where T : unmanaged => WriteField(value, (c, v) => c.WriteUnmanaged(v), AlignmentCalculator.AlignmentOf<T>());
 
@@ -25,34 +41,53 @@ namespace NativeBuffering
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBufferedObjectField<T>(T value) where T : IBufferedObjectSource => WriteField(value, (c, v) => v.Write(c), IntPtr.Size, value is null);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void WriteField<T>(T value, Action<BufferedObjectWriteContext, T> writeValue, int alignment, bool isDefault = false)
         {
-            var fieldSlot = _context.Position;
-            _context.Advance(sizeof(int));
-            _pendingWriteActions.Enqueue(context =>
+            if (isDefault || value is null)
             {
-                if (isDefault || value is null )
+                if (!_isSizeCalculateMode)
                 {
-                    if (!context.IsSizeCalculateMode)
-                    {
-                        Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), -1);
-                    }
-                    return;
+                    Unsafe.Write(Unsafe.AsPointer(ref _writeContext.Bytes[_fieldSlot]), -1);
                 }
-                context.AddPaddingBytes(alignment);
-                if (!context.IsSizeCalculateMode)
-                {
-                    Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), context.Position);
-                }
-                writeValue(context, value);
-            });
-        }
-        public void Dispose()
-        {
-            foreach (var write in _pendingWriteActions)
-            {
-                write(_context);
             }
+            else
+            {
+                _writeContext.AddPaddingBytes(alignment);
+                if (!_writeContext.IsSizeCalculateMode)
+                {
+                    Unsafe.Write(Unsafe.AsPointer(ref _writeContext.Bytes[_fieldSlot]), _writeContext.Position);
+                }
+                writeValue(_writeContext, value);
+            }
+            _fieldSlot += sizeof(int);
+
+            //var fieldSlot = _context.Position;
+            //_context.Advance(sizeof(int));
+            //_pendingWriteActions.Enqueue(context =>
+            //{
+            //    if (isDefault || value is null )
+            //    {
+            //        if (!context.IsSizeCalculateMode)
+            //        {
+            //            Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), -1);
+            //        }
+            //        return;
+            //    }
+            //    context.AddPaddingBytes(alignment);
+            //    if (!context.IsSizeCalculateMode)
+            //    {
+            //        Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), context.Position);
+            //    }
+            //    writeValue(context, value);
+            //});
         }
+        //public void Dispose()
+        //{
+        //    foreach (var write in _pendingWriteActions)
+        //    {
+        //        write(_context);
+        //    }
+        //}
     }
 }

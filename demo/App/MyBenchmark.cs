@@ -12,7 +12,7 @@ namespace App
         private string? _json;
         private static byte[]? _bytes;
 
-        private Entity? _entity;
+        private Entity _entity;
         private EntityBufferedMessage _bufferedMessage;
 
         [GlobalSetup]
@@ -32,19 +32,19 @@ namespace App
                 BufferedMessageCollection = new Foobar[] { new Foobar(1, "a"), new Foobar(2, "b") },
 
                 UnmanagedUnmanagedDictionary = new Dictionary<long, Pointer> { { 1, new Pointer(1, 2) }, { 2, new Pointer(3, 4) } },
-                UnmanagedStringDictionary = new Dictionary<long, string> { { 1, "Hello" }, { 2, "World" } },
-                UnmanagedBinaryDictionary = new Dictionary<long, byte[]> { { 1, new byte[] { 1, 2, 3 } }, { 2, new byte[] { 4, 5, 6 } } },
-                UnmanagedBufferedMessageDictionary = new Dictionary<long, Foobar> { { 1, new Foobar(1, "a") }, { 2, new Foobar(2, "b") } },
+                //UnmanagedStringDictionary = new Dictionary<long, string> { { 1, "Hello" }, { 2, "World" } },
+                //UnmanagedBinaryDictionary = new Dictionary<long, byte[]> { { 1, new byte[] { 1, 2, 3 } }, { 2, new byte[] { 4, 5, 6 } } },
+                //UnmanagedBufferedMessageDictionary = new Dictionary<long, Foobar> { { 1, new Foobar(1, "a") }, { 2, new Foobar(2, "b") } },
 
-                StringUnmanagedDictionary = new Dictionary<string, Pointer> { { "a", new Pointer(1, 2) }, { "b", new Pointer(3, 4) } },
-                StringStringDictionary = new Dictionary<string, string> { { "a", "Hello" }, { "b", "World" } },
-                StringBinaryDictionary = new Dictionary<string, byte[]> { { "a", new byte[] { 1, 2, 3 } }, { "b", new byte[] { 4, 5, 6 } } },
-                StringBufferedMessageDictionary = new Dictionary<string, Foobar> { { "a", new Foobar(1, "a") }, { "b", new Foobar(2, "b") } },
+                //StringUnmanagedDictionary = new Dictionary<string, Pointer> { { "a", new Pointer(1, 2) }, { "b", new Pointer(3, 4) } },
+                //StringStringDictionary = new Dictionary<string, string> { { "a", "Hello" }, { "b", "World" } },
+                //StringBinaryDictionary = new Dictionary<string, byte[]> { { "a", new byte[] { 1, 2, 3 } }, { "b", new byte[] { 4, 5, 6 } } },
+                //StringBufferedMessageDictionary = new Dictionary<string, Foobar> { { "a", new Foobar(1, "a") }, { "b", new Foobar(2, "b") } },
             };
 
             _json = System.Text.Json.JsonSerializer.Serialize(entity);
             _bytes = GC.AllocateUninitializedArray<byte>(entity.CalculateSize(), true);
-            var context = new BufferedObjectWriteContext(_bytes);
+            var context =  BufferedObjectWriteContext.Create(_bytes);
             entity.Write(context);
 
             _entity = entity;
@@ -56,6 +56,20 @@ namespace App
         }
 
         [Benchmark]
+        public string SerializeAsJson()=> JsonSerializer.Serialize(_entity!);
+
+        [Benchmark]
+        public void SerializeNativeBuffering()
+        {
+            var size = _entity.CalculateSize();
+            var bytes = ArrayPool<byte>.Shared.Rent(size);
+            var context = BufferedObjectWriteContext.Acquire(bytes);
+            _entity.Write(context);
+            BufferedObjectWriteContext.Release(context);
+            ArrayPool<byte>.Shared.Return(bytes);
+        }
+
+        //[Benchmark]
         public string UseEntity()
         {
             return JsonSerializer.Serialize(_entity!);
@@ -139,6 +153,14 @@ namespace App
         //[Benchmark]
         public void UseEntityBufferedMessageFor()
         {
+            var size = _entity.CalculateSize();
+            var bytes = ArrayPool<byte>.Shared.Rent(size);
+            var context = BufferedObjectWriteContext.Acquire(bytes);
+            _entity.Write(context);
+            BufferedObjectWriteContext.Release(context);
+            ArrayPool<byte>.Shared.Return(bytes);
+
+
             using (var pooledMessage = _entity!.AsBufferedMessage<EntityBufferedMessage>())
             {
                 Process(pooledMessage.BufferedMessage.Pritimive);
@@ -212,16 +234,16 @@ namespace App
             //Process(stringBinaryDictionary["b"]);
         }
 
-        [Benchmark]
+        //[Benchmark]
         public void UseEntityBufferedMessageForeach()
         {
             //var entity = JsonSerializer.Deserialize<Entity>(_json!)!;
-            var entity = _bufferedMessage!;
-            Process(entity.Pritimive);
-            Process(entity.Unmanaged);
-            Process(entity.String);
-            Process(entity.Binary);
-            Process(entity.BufferedMessage);
+            //var entity = _bufferedMessage!;
+            //Process(entity.Pritimive);
+            //Process(entity.Unmanaged);
+            //Process(entity.String);
+            //Process(entity.Binary);
+            //Process(entity.BufferedMessage);
 
             //foreach (var item in entity.UnmanagedCollection)
             //{

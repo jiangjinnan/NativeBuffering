@@ -11,7 +11,7 @@
         {
             var size = (source ?? throw new ArgumentNullException(nameof(source))).CalculateSize();
             var owner = BufferPool.Rent(size);
-            var context = new BufferedObjectWriteContext(owner.Bytes);
+            var context = BufferedObjectWriteContext.Create(owner.Bytes);
             source.Write(context);
             return new PooledBufferedMessage<T>(owner, Create<T>(ref owner));
         }

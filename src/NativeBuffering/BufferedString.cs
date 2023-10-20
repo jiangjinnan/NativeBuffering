@@ -10,8 +10,9 @@ namespace NativeBuffering
         static BufferedString()
         { 
             var size = CalculateStringSize(string.Empty);
-            var bytes = BufferPool.Rent(size).Bytes;
-            var context = new BufferedObjectWriteContext(bytes);
+            var bytes = new byte[size];
+
+            var context = BufferedObjectWriteContext.Create(bytes);
             context.WriteString(string.Empty);
             DefaultValue = new BufferedString(new NativeBuffer(bytes));
         }
