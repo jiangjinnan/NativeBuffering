@@ -64,8 +64,9 @@ namespace NativeBuffering
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
             return position == -1 ? ReadOnlyNullableBufferedObjectList<T>.DefaultValue : new ReadOnlyNullableBufferedObjectList<T>(buffer.CreateByIndex(position));
         }
-        #endregion
+        #endregion\
 
+        #region Dictionary
         public static ReadOnlyUnmanagedNonNullableUnmanagedDictionary<TKey, TValue> ReadUnmanagedNonNullableUnmanagedDictionaryField<TKey, TValue>(this NativeBuffer buffer, int index)
             where TKey : unmanaged, IEquatable<TKey>
             where TValue : unmanaged
@@ -124,5 +125,6 @@ namespace NativeBuffering
             var position = Unsafe.Read<int>(buffer.GetPointerByOffset(sizeof(int) * index));
             return new ReadOnlyStringNullableBufferedObjectDictionary<TValue>(buffer.CreateByIndex(position));
         }
+        #endregion
     }
 }

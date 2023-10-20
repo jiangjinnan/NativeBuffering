@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using NativeBuffering;
 using System.Buffers;
+using System.Text;
 using System.Text.Json;
 
 namespace App
@@ -31,7 +32,7 @@ namespace App
                 BinaryCollection = new byte[][] { new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 } },
                 BufferedMessageCollection = new Foobar[] { new Foobar(1, "a"), new Foobar(2, "b") },
 
-                UnmanagedUnmanagedDictionary = new Dictionary<long, Pointer> { { 1, new Pointer(1, 2) }, { 2, new Pointer(3, 4) } },
+                //UnmanagedUnmanagedDictionary = new Dictionary<long, Pointer> { { 1, new Pointer(1, 2) }, { 2, new Pointer(3, 4) } },
                 //UnmanagedStringDictionary = new Dictionary<long, string> { { 1, "Hello" }, { 2, "World" } },
                 //UnmanagedBinaryDictionary = new Dictionary<long, byte[]> { { 1, new byte[] { 1, 2, 3 } }, { 2, new byte[] { 4, 5, 6 } } },
                 //UnmanagedBufferedMessageDictionary = new Dictionary<long, Foobar> { { 1, new Foobar(1, "a") }, { 2, new Foobar(2, "b") } },
@@ -56,7 +57,7 @@ namespace App
         }
 
         [Benchmark]
-        public string SerializeAsJson()=> JsonSerializer.Serialize(_entity!);
+        public byte[] SerializeAsJson()=> Encoding.UTF8.GetBytes(JsonSerializer.Serialize(_entity!));
 
         [Benchmark]
         public void SerializeNativeBuffering()

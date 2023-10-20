@@ -16,7 +16,7 @@ namespace App
         public byte[][] BinaryCollection { get; set; } = default!;
         public Foobar[] BufferedMessageCollection { get; set; } = default!;
 
-        public Dictionary<long, Pointer> UnmanagedUnmanagedDictionary { get; set; } = default!;
+        //public Dictionary<long, Pointer> UnmanagedUnmanagedDictionary { get; set; } = default!;
         //public Dictionary<long, string> UnmanagedStringDictionary { get; set; } = default!;
         //public Dictionary<long, byte[]> UnmanagedBinaryDictionary { get; set; } = default!;
         //public Dictionary<long, Foobar> UnmanagedBufferedMessageDictionary { get; set; } = default!;

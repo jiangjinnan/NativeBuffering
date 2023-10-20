@@ -3,11 +3,11 @@ using System.Diagnostics;
 
 var entity = new Entity
 {
-    //Primitive = 123,
-    //Unmanaged = new Foobar(123, 789),
-    //Bytes = Enumerable.Range(1, 128).Select(_ => byte.MaxValue).ToArray(),
-    //String = "abc",
-    //BufferedObject = new Foobarbaz(new Foobar(111, 222), "xyz"),
+    Primitive = 123,
+    Unmanaged = new Foobar(123, 789),
+    Bytes = Enumerable.Range(1, 128).Select(_ => byte.MaxValue).ToArray(),
+    String = "abc",
+    BufferedObject = new Foobarbaz(new Foobar(111, 222), "xyz"),
 
     PrimitiveList = new int[] { 1, 2, 3 },
     UnmanagedList = new Foobar[] { new Foobar(1, 2), new Foobar(3, 4) },
@@ -15,7 +15,10 @@ var entity = new Entity
     BufferedObjectList = new Foobarbaz[] { new Foobarbaz(new Foobar(1, 2), "a"), new Foobarbaz(new Foobar(3, 4), "b") }
 };
 
-using (var pooledMessage = entity.AsBufferedMessage<EntityBufferedMessage>())
+await entity.WriteToAsync("entity.bin");
+
+
+using (var pooledMessage = await BufferedMessage.LoadAsync<EntityBufferedMessage>("entity.bin"))
 {
     var bufferedMessage = pooledMessage.BufferedMessage;
     Debug.Assert(bufferedMessage.PrimitiveList.Count == 3);
