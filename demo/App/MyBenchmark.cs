@@ -45,7 +45,7 @@ namespace App
 
             _json = System.Text.Json.JsonSerializer.Serialize(entity);
             _bytes = GC.AllocateUninitializedArray<byte>(entity.CalculateSize(), true);
-            var context =  BufferedObjectWriteContext.Create(_bytes);
+            var context =  BufferedObjectWriteContext.Acquire(_bytes);
             entity.Write(context);
 
             _entity = entity;

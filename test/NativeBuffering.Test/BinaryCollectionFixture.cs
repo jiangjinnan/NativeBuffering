@@ -7,7 +7,7 @@
         {
             var source = new Source(new List<byte[]?> { null, new byte[] { 2, 2, 2 }, Array.Empty<byte>()});
             var buffer = new byte[source.CalculateSize()];
-            var context =  BufferedObjectWriteContext.Create(buffer);
+            var context =  BufferedObjectWriteContext.Acquire(buffer);
             source.Write(context);
             using var pooledMessage = source.AsBufferedMessage<SourceBufferedMessage>();
             var message = pooledMessage.BufferedMessage;
@@ -18,6 +18,7 @@
             Assert.True(message.Value[1]!.AsSpan().ToArray().All(it => it == 2));
             Assert.True(message.Value[2]!.Length == 0);
             Assert.True(message.Value[2]!.AsSpan().Length == 0);
+            BufferedObjectWriteContext.Release(context);
         }
 
         [BufferedMessageSource]

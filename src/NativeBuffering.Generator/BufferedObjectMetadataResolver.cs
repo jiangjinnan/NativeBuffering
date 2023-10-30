@@ -22,6 +22,11 @@ namespace NativeBuffering.Generator
             var properties = new List<BufferedObjectProperty>();
             foreach (var property in typeSymbol.GetMembers().OfType<IPropertySymbol>())
             {
+                if (property.IsStatic)
+                {
+                    continue;
+                }
+
                 if(excludedPropertyNames.Contains(property.Name))
                 {
                     continue;

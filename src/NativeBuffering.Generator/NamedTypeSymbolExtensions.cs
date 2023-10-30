@@ -174,7 +174,7 @@ namespace NativeBuffering.Generator
                 return false;
             }         
 
-            if (namedTypeSymbol.MetadataName == "Memory`1" && namedTypeSymbol.TypeArguments.Count() == 0 && namedTypeSymbol.TypeArguments.Single().SpecialType == SpecialType.System_Byte)
+            if (namedTypeSymbol.MetadataName == "Memory`1" && namedTypeSymbol.TypeArguments.Count() == 1 && namedTypeSymbol.TypeArguments.Single().SpecialType == SpecialType.System_Byte)
             {
                 return true;
             }

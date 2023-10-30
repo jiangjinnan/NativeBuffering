@@ -8,9 +8,11 @@ namespace NativeBuffering
         {
             var size = bufferedObjectSource.CalculateSize();
             var buffer = bufferProvider(size);
-            var context = BufferedObjectWriteContext.Create(buffer);
+            var context = BufferedObjectWriteContext.Acquire(buffer);
             bufferedObjectSource.Write(context);
-            return new ArraySegment<byte>(buffer, 0, size);
+            var result = new ArraySegment<byte>(buffer, 0, size);
+            BufferedObjectWriteContext.Release(context);
+            return result;
         }
 
         public static async Task WriteToAsync(this IBufferedObjectSource bufferedObjectSource, Stream stream, bool closeStream = false)

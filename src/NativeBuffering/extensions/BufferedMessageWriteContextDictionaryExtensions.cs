@@ -11,6 +11,11 @@ namespace NativeBuffering
             where TKey : unmanaged, IComparable<TKey>
             where TValue : unmanaged
         {
+            if(dictionary is Dictionary<TKey, TValue> dict)
+            {
+                WriteUnmanagedNonNullableUnmanagedDictionary(context, dict);
+                return;
+            }
             var kvEntries = Distribute(dictionary, out var entryCount);
             WriteUnmanagedNonNullableUnmanagedDictionary(context, kvEntries, dictionary.Count, entryCount);
         }
@@ -123,8 +128,14 @@ namespace NativeBuffering
             Action<BufferedObjectWriteContext, TValue> valueWriter,
             int keyAligiment,
             int valueAlignment,
-            Func<TValue, bool> defaultValueEvaluator)
+            Func<TValue, bool> defaultValueEvaluator) where TKey : notnull
         {
+            if (dictionary is Dictionary<TKey, TValue> dict)
+            {
+                WriteVariableLengthDictionary(context, dict, keyWriter, valueWriter, keyAligiment, valueAlignment, defaultValueEvaluator);
+                return;
+            }
+
             var kvEntries = Distribute(dictionary, out var entryCount);
             WriteVariableLengthDictionary(context, kvEntries, dictionary.Count, entryCount, keyWriter, valueWriter, keyAligiment, valueAlignment, defaultValueEvaluator);
         }

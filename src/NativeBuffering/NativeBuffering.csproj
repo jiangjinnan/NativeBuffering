@@ -7,9 +7,9 @@
 	<LangVersion>preview</LangVersion>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<AssemblyVersion>0.1.2</AssemblyVersion>
+	<AssemblyVersion>0.1.4</AssemblyVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.1.2</Version>
+	<Version>0.1.4</Version>
   </PropertyGroup>
 
   <ItemGroup>

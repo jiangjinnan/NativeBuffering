@@ -7,6 +7,10 @@ namespace NativeBuffering
         #region WriteNonNullableUnmanagedCollection
         public static void WriteNonNullableUnmanagedCollection<T>(this BufferedObjectWriteContext context, IEnumerable<T> collection) where T : unmanaged
         {
+            if (collection is T[] array) { context.WriteNonNullableUnmanagedCollection(array); return; }
+            if(context is List<T> list) {context.WriteNonNullableUnmanagedCollection(list);  return; }
+            if (context is ICollection<T> collection2) {context.WriteNonNullableUnmanagedCollection(collection2); return; }
+
             context.EnsureAlignment(IntPtr.Size);
             context.WriteUnmanaged(collection.Count());
             context.Advance(IntPtr.Size - sizeof(int));
@@ -118,7 +122,11 @@ namespace NativeBuffering
         #region WriteVariableLengthTypedCollection
         public static void WriteVariableLengthTypedCollection<T>(this BufferedObjectWriteContext context, IEnumerable<T> collection, Action<BufferedObjectWriteContext, T> elementWriter)
         {
-            collection??=Enumerable.Empty<T>();
+            if (collection is T[] array) { context.WriteVariableLengthTypedCollection(array, elementWriter); return; }
+            if (context is List<T> list) { context.WriteVariableLengthTypedCollection(list, elementWriter); return; }
+            if (context is ICollection<T> collection2) { context.WriteVariableLengthTypedCollection(collection2, elementWriter); return; }
+
+            collection ??=Enumerable.Empty<T>();
             context.EnsureAlignment(IntPtr.Size);
             var count = collection.Count();
             context.WriteUnmanaged(count);
