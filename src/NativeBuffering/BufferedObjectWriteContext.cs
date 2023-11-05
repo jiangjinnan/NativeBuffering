@@ -36,54 +36,25 @@ namespace NativeBuffering
             }
             _position += sizeof(T);
         }
+
+        //private readonly int _sizeByteCount = sizeof(int) + (IntPtr.Size - sizeof(int));
         public void WriteString(string value)
         {
             if(value is null) throw new ArgumentNullException(nameof(value));
-
             var size = BufferedString.CalculateStringSize(value);
-
             if (!IsSizeCalculateMode)
             {
+                //Size + Padding
                 Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), size);
-            }
-            _position += sizeof(int) + (IntPtr.Size - sizeof(int)) + IntPtr.Size;
+                _position += IntPtr.Size;
 
-            if (!IsSizeCalculateMode)
-            {
-                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), _stringTypeHandle);
+                var address = *(nint*)Unsafe.AsPointer(ref value) - nint.Size;
+                var pointer = address.ToPointer();
+                Unsafe.CopyBlock(PositionAsPointer, pointer, (uint)size);
+                _position += size - IntPtr.Size;
+                return;
             }
-            _position += IntPtr.Size;
-
-            if (!IsSizeCalculateMode)
-            {
-                Unsafe.Write(Unsafe.AsPointer(ref Bytes[_position]), value?.Length ?? 0);
-            }
-            _position += sizeof(int);
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                var byteCount = Encoding.Unicode.GetByteCount(value);
-                
-                //var bytes = Encoding.Unicode.GetBytes(value,);
-                if (!IsSizeCalculateMode)
-                {
-                    Encoding.Unicode.GetBytes(value, Bytes.AsSpan(_position));
-                    //Unsafe.CopyBlock(ref Bytes[_position], ref bytes[0], (uint)bytes.Length);
-                }
-
-                if (IntPtr.Size == 4 || byteCount >= 4)
-                {
-                    _position += byteCount;
-                }
-                else
-                {
-                    _position += 4;
-                }
-            }
-            else if (IntPtr.Size == 8)
-            {
-                _position += 4;
-            }
+            _position += size;
         }
         public void WriteBytes(Span<byte> bytes)
         {

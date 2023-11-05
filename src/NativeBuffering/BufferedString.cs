@@ -45,13 +45,10 @@ namespace NativeBuffering
         public static int CalculateStringSize(string? value)
         {
             var byteCount = value is null ? 0 : Encoding.Unicode.GetByteCount(value);
-
-            var size = sizeof(nint)
-                + sizeof(nint)
-                + sizeof(nint)
-                + sizeof(int)
-                + byteCount;
+            var size = _headerByteCount + byteCount;
             return Math.Max(IntPtr.Size * 3 + sizeof(int), size);
         }
+
+        private static readonly int _headerByteCount = sizeof(nint) + sizeof(nint) + sizeof(nint) + sizeof(int);
     }
 }

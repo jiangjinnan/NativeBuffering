@@ -4,10 +4,10 @@ using NativeBuffering;
 using System.Buffers;
 using System.Diagnostics;
 
-var arraySegment = Record.Instance.WriteTo(ArrayPool<byte>.Shared.Rent);
-ArrayPool<byte>.Shared.Return(arraySegment.Array!);
+//var arraySegment = Record.Instance.WriteTo(ArrayPool<byte>.Shared.Rent);
+//ArrayPool<byte>.Shared.Return(arraySegment.Array!);
 
-//var summary = BenchmarkRunner.Run(typeof(MyBenchmark));
+var summary = BenchmarkRunner.Run(typeof(MyBenchmark));
 
 //var foobar1 = new Foobar { Foo = 1, Bar = 2 };
 //var foobar2 = new Foobar { Foo = 3, Bar = 4 };

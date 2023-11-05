@@ -2,7 +2,7 @@
 
 namespace NativeBuffering
 {
-    public unsafe sealed class BufferedObjectWriteContextScope //: IDisposable
+    public unsafe sealed class BufferedObjectWriteContextScope 
     {
         private BufferedObjectWriteContext _writeContext = default!;
         private int _fieldSlot;
@@ -61,33 +61,6 @@ namespace NativeBuffering
                 writeValue(_writeContext, value);
             }
             _fieldSlot += sizeof(int);
-
-            //var fieldSlot = _context.Position;
-            //_context.Advance(sizeof(int));
-            //_pendingWriteActions.Enqueue(context =>
-            //{
-            //    if (isDefault || value is null )
-            //    {
-            //        if (!context.IsSizeCalculateMode)
-            //        {
-            //            Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), -1);
-            //        }
-            //        return;
-            //    }
-            //    context.AddPaddingBytes(alignment);
-            //    if (!context.IsSizeCalculateMode)
-            //    {
-            //        Unsafe.Write(Unsafe.AsPointer(ref context.Bytes[fieldSlot]), context.Position);
-            //    }
-            //    writeValue(context, value);
-            //});
         }
-        //public void Dispose()
-        //{
-        //    foreach (var write in _pendingWriteActions)
-        //    {
-        //        write(_context);
-        //    }
-        //}
     }
 }

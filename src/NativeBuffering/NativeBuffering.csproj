@@ -7,9 +7,10 @@
 	<LangVersion>preview</LangVersion>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<AssemblyVersion>0.1.4</AssemblyVersion>
+	<AssemblyVersion>0.1.5</AssemblyVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Version>0.1.4</Version>
+	<Version>0.1.5</Version>
+	<PackageReleaseNotes>Improve string based serialization performance.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
